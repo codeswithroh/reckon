@@ -1,72 +1,90 @@
 # Reckon
 
-**Proof-of-Prediction reputation for AI agents on Monad.**
+**A transaction seatbelt for Monad.** Stop burning MON on failed and over-sized transactions.
 
-> A screenshot can lie. A receipt can't.
-
-Reckon is on-chain infrastructure that gives autonomous AI agents an **objective, tamper-proof
-track record**. Agents commit predictions *before* outcomes resolve; a contract scores them
-against trustless ground truth (Pyth) and writes a portable reputation linked to the agent's
-[ERC-8004](https://eips.ethereum.org/) identity. Reputation is computed on-chain, so it can't be
-self-reported, curated, or edited in hindsight.
-
-It extends the ERC-8004 "Trustless Agents" registries **already deployed on Monad** with the piece
-they're missing: reputation earned by being *right about the future*, not by collecting subjective
-feedback.
+> On Monad you pay for the gas limit you declare — **not the gas you use, and even when your
+> transaction reverts.** Reckon pre-flights every transaction: it simulates it, refuses to
+> broadcast doomed ones, and sets the tightest *correct* gas limit — so you never pay for a
+> failure or an oversized limit again.
 
 ---
 
 ## Status
 
-🟡 **Phase 0 — planning & scaffolding.** No application code yet.
-See **[PLAN.md](./PLAN.md)** for the full architecture and phased build plan.
+🟢 **Phase 0 complete** — problem verified on live testnet, plan locked. Building Phase 1 (core
+engine) next. See **[PLAN.md](./PLAN.md)**.
 
-This README will grow into full setup/run/verify docs as phases land.
+## The problem (verified, not assumed)
 
-## Why it matters
+We proved Monad's gas model against live testnet data — reproducible in
+**[research/gas-model/](./research/gas-model/VERIFICATION.md)**:
 
-The agent economy on Monad is large and growing — but every agent claims to be smart and none can
-prove it. Reckon answers the only question that matters before you trust an agent with money or
-decisions: **is its track record real, or cherry-picked hindsight?**
+- A **reverted** tx paid its **full declared gas limit** — balance delta
+  `0.013586524000131908 MON` = `gasLimit × price`, exact to the wei
+  ([tx](https://testnet.monadexplorer.com/tx/0x272f56f75f38199c6cc1a465df6bb0c310bae51beaa4ea6500e15107f7fb29b8)).
+- **40/40** sampled txs report `receipt.gasUsed == gasLimit` — the chain **hides your real usage**.
+- Wallets balloon the limit on revert-probes, so one failed action (a sold-out NFT mint, an
+  underpriced swap) can cost a shocking amount of MON.
+- A Monad airdrop user burned **~$112,700** on failed transactions; the network failure rate is **~6%**.
 
-## How it works (one paragraph)
+There is no Monad-native tool that prevents this. Reckon is that tool.
 
-1. A market is created — e.g. "ETH/USD direction over the next hour" — with a commit deadline
-   strictly before its resolution time.
-2. Agents run **real inference** (Claude) and **commit a hash** of their prediction + confidence
-   before the deadline. No hindsight possible.
-3. After the deadline they **reveal**; anyone can **resolve** the market from a **Pyth-signed
-   price**.
-4. The contract computes a **Brier score** on-chain and updates the agent's portable reputation.
-5. Every prediction has a public **receipt**: commit tx + timestamp, revealed take, resolution
-   price + tx, and the computed score — all verifiable on the Monad explorer.
+## How it works
 
-## Verified on-chain foundations (Monad testnet, chainId 10143)
+`preflight(tx)` runs before you broadcast and returns a verdict:
 
-| Primitive | Address |
-|---|---|
-| ERC-8004 IdentityRegistry | `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` |
-| ERC-8004 ReputationRegistry | `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` |
-| Pyth (pull oracle) | `0x2880aB155794e7179c9eE2e38200202908C17B43` |
+```ts
+const v = await reckon.preflight(tx)
+// {
+//   ok: false,
+//   willRevert: true,
+//   revertReason: "SoldOut()",
+//   recommendedGasLimit: 61_000n,     // Monad-correct, not Ethereum-guessed
+//   worstCaseFeeMON: "0.0062",        // what you'd actually be charged
+//   overpayVsWalletDefault: "0.045"   // MON the wallet default would have burned
+// }
+await reckon.safeSend(tx)             // refuses to broadcast a doomed tx
+```
 
-_All three verified to have live code on testnet before being designed into the protocol._
+## Three surfaces (it's infrastructure, not an app)
+
+| Surface | For | What it does |
+|---|---|---|
+| **SDK** (`packages/sdk`) | dApps & deploy scripts | drop-in viem wrapper: `safeSend()` |
+| **Agent guard** (`packages/agent`) | autonomous AI agents | MCP tools so agents pre-flight every tx |
+| **GuardedExecutor** (`contracts/`) | on-chain | bounded, predictable, policy-enforced execution |
+
+AI agents fire many transactions and are the most exposed to Monad's gas model — so the agent
+economy *increases* Reckon's value, it doesn't erode it.
+
+## Honest accounting
+
+Savings come from **pre-broadcast** (not sending failures + declaring the tightest correct limit).
+Once a tx is on-chain, Monad charges the limit — **no component pretends to refund gas.** Every
+cost/savings figure is measured against real testnet transactions.
 
 ## Repository layout (target)
 
 ```
-contracts/   Foundry — Solidity contracts + tests
-sdk/         TypeScript SDK (viem) for agents & apps
-agents/      Reference agents with real Claude inference
-web/         Next.js frontend (leaderboard · track record · receipts)
-indexer/     Envio HyperIndex (added after deploy)
-PLAN.md      Full implementation plan
+packages/core    pre-flight engine (simulate + Monad gas model + cost quote)
+packages/sdk     drop-in viem middleware for apps & scripts
+packages/agent   MCP server / agent guard
+contracts/       Foundry — GuardedExecutor + tests
+web/             Next.js dashboard (MON saved · receipts)
+research/        live-testnet gas-model verification (reproducible)
+PLAN.md          full implementation plan
+```
+
+## Verify the problem yourself
+
+```bash
+cd research/gas-model && npm install && npm run summary
 ```
 
 ## Tech
 
-Monad testnet · Foundry · Solidity + OpenZeppelin · viem · Next.js + Wagmi v3 + Shadcn · Para
-(wallet) · Envio (indexing) · Pyth (oracle) · Claude API (agent inference). Built with
-[Monskills](https://skills.devnads.com/).
+Monad testnet · viem · Foundry · Solidity + OpenZeppelin · MCP · Next.js + Wagmi v3 + Shadcn · Para
+(wallet). Built with [Monskills](https://skills.devnads.com/).
 
 ## License
 

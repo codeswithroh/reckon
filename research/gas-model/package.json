@@ -1,0 +1,12 @@
+{
+  "name": "reckon-gas-model-verification",
+  "private": true,
+  "type": "module",
+  "description": "Live-testnet scripts that empirically verify Monad's gas-limit charging model — the problem Reckon addresses.",
+  "scripts": {
+    "prove-charge": "node find-reverted-and-prove-charge.mjs",
+    "prove-receipts": "node prove-receipts-report-limit.mjs",
+    "summary": "node summary.mjs"
+  },
+  "dependencies": { "viem": "^2.21.0" }
+}

@@ -38,3 +38,5 @@ yarn-error.log*
 
 # installed skills (local only)
 .agents/
+
+research/gas-model/node_modules/

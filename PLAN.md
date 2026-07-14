@@ -1,186 +1,157 @@
 # Reckon — Implementation Plan
 
-> **Reckon** is a Proof-of-Prediction reputation layer for AI agents on Monad.
-> It extends the ERC-8004 "Trustless Agents" standard with *objective, outcome-verified*
-> reputation: agents commit predictions **before** outcomes resolve, and an on-chain
-> contract scores them against trustless ground truth (Pyth). The result is a portable,
-> tamper-proof track record — "a screenshot can lie, a receipt can't."
+> **Reckon** is a transaction seatbelt for Monad. It pre-flights every transaction — simulating it,
+> refusing to broadcast doomed ones, and setting the tightest *correct* gas limit — so you stop
+> burning MON on failed and over-sized transactions. Shipped as three surfaces: an **SDK**, an
+> **MCP agent guard**, and an on-chain **GuardedExecutor**.
 
-_Working name; can be renamed. Status of this document: **DRAFT — awaiting sign-off before Phase 1.**_
+_Status: **direction locked; Phase 0 complete; ready to start Phase 1.**_
 
 ---
 
-## 1. The problem (and why it's personal)
+## 1. The problem (real, documented, and personal)
 
-The agent economy is exploding on Monad (413 of 742 hackathon projects in 2026 were agentic).
-Every agent claims to be smart. **None of them can prove it.** As someone who wants to
-delegate money and decisions to AI agents, I have no way to answer the only question that
-matters: *which agent's track record is actually real, and not cherry-picked hindsight?*
+On Monad you pay for the **declared `gas_limit`, not the gas you actually use — even when your
+transaction reverts.** We didn't take this on faith; we **verified it on live testnet**
+(see [research/gas-model/VERIFICATION.md](./research/gas-model/VERIFICATION.md)):
 
-Today's on-chain reputation (including ERC-8004's `ReputationRegistry`) is **subjective**:
-clients leave feedback/attestations. That can be gamed, bought, or curated. There is no
-**objective, outcome-verified** track record for autonomous agents.
+- A reverted tx ([`0x272f56…`](https://testnet.monadexplorer.com/tx/0x272f56f75f38199c6cc1a465df6bb0c310bae51beaa4ea6500e15107f7fb29b8))
+  paid its full declared limit — balance delta `0.013586524000131908 MON` = `gasLimit × price`,
+  exact to the wei.
+- **40/40** sampled txs report `receipt.gasUsed == gasLimit`: the chain hides your true usage.
+- Primary docs confirm the model; wallets (MetaMask) *balloon* the limit on revert-probes, so a
+  single failed action (minting a sold-out NFT, an underpriced swap) can cost a shocking amount.
+- A Monad airdrop user burned **~$112,700 in MON** on failed txs. Network failure rate is **~6%**.
 
-**Reckon fills that gap.** It is infrastructure — a protocol + SDK any agent or app can
-build on — not a single consumer app.
+**Personal angle:** anyone deploying/testing contracts or running agents/scripts on Monad — me
+included — silently bleeds MON to this every day. There is no Monad-native tool that prevents it.
 
-## 2. Why this can win
+## 2. Why this is a strong hackathon project
 
-Mapped against what actually won past Monad hackathons (OpenAlice, AMMO, Nobel, Gorillionaire,
-ShieldAI) and the strongest external reference (Heckle / tryheckle.xyz):
+- **Solves a documented, six-figure, Monad-specific problem** — evidence, not vibes.
+- **Personally felt** by the builder (the "solves your own problem" judging criterion).
+- **Infra, reusable by the whole ecosystem** — SDK + MCP guard + on-chain contract, not a closed app.
+- **Agent-economy relevant, authentically** — autonomous agents fire many txs, retry in loops, and
+  are the population most exposed. AI adoption *increases* this tool's value (unlike a static linter).
+- **Deeply Monad-native** — gas-limit charging, opcode repricing, async state, EIP-7702.
+- **Live and quantifiable demo** — fire real doomed/over-sized txs with and without Reckon; show MON
+  burned vs saved on-chain. Non-fakeable — exactly what the anti-slop AI judge wants.
 
-| Winning pattern | How Reckon hits it |
-|---|---|
-| Cryptographically-verifiable AI claims (not "trust me") | Commit-before-resolve, on-chain scoring, signer-checked authorship |
-| Extends live infra rather than duplicating it | Builds **on** the ERC-8004 registries already deployed on Monad |
-| Monad-specific advantage | Frequent commit/reveal/resolve cycles are only cheap because of sub-second finality + near-zero fees |
-| An economic/reputation loop, not a feature list | Portable reputation that compounds and is queryable by other apps |
-| Live, real data — no vaporware | Real Claude inference + real Pyth prices + real testnet txs, end to end |
-
-## 3. Verified foundations (checked against live testnet — not assumed)
+## 3. Verified on-chain foundations (Monad testnet, chainId 10143)
 
 | Primitive | Address / value | Status |
 |---|---|---|
-| Monad testnet | chainId `10143`, RPC `https://testnet-rpc.monad.xyz` | ✅ live (block ~44.8M) |
-| ERC-8004 IdentityRegistry | `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` | ✅ has code on testnet |
-| ERC-8004 ReputationRegistry | `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` | ✅ has code on testnet |
-| Pyth (pull oracle) | `0x2880aB155794e7179c9eE2e38200202908C17B43` | ✅ has code on testnet |
-| Stork (pull oracle) | `0xacC0a0cF13571d30B4b8637996F5D6D774d4fd62` | ✅ has code on testnet |
-| Multicall3 | `0xcA11bde05977b3631167028862bE2a173976CA11` | ✅ has code on testnet |
-| Chainlink feeds (from docs) | (various) | ❌ **empty on testnet — do NOT use** |
-| Pyth beta MON/USD (from docs) | `0xad2B52…CD0B5` | ❌ **empty on testnet — do NOT use** |
-
-> The Chainlink/Pyth-beta rows are why we verify: the docs list them, but there is no code
-> at those addresses on testnet today. Resolution will use **Pyth** (verified live).
+| Testnet | chainId `10143`, RPC `https://testnet-rpc.monad.xyz` | ✅ live |
+| Multicall3 | `0xcA11bde05977b3631167028862bE2a173976CA11` | ✅ has code |
+| Pyth (pull oracle) | `0x2880aB155794e7179c9eE2e38200202908C17B43` | ✅ has code |
+| ERC-8004 Identity / Reputation | `0x8004A169…a432` / `0x8004BAa1…9b63` | ✅ has code |
+| Chainlink / Pyth-beta feeds (from docs) | (various) | ❌ **empty — do NOT use** |
+| Gas-limit charging (incl. on revert) | — | ✅ **empirically verified** |
 
 ## 4. Architecture
 
 ```
-                         ┌──────────────────────────────────────────────┐
-                         │                 Frontend (web/)               │
-                         │  Next.js + Wagmi v3 + Shadcn + Para wallet     │
-                         │  Leaderboard · Agent track record · Receipt    │
-                         └───────────────┬───────────────┬──────────────┘
-                                         │ reads         │ reads (events)
-                                         ▼               ▼
-                              ┌───────────────┐   ┌──────────────────┐
-                              │  Monad RPC    │   │ Envio HyperIndex │
-                              │ (direct reads)│   │  (activity/feed) │
-                              └──────┬────────┘   └────────┬─────────┘
-                                     │  indexes events      │
-        ┌────────────────────────────┴──────────────────────┴──────────────┐
-        │                        Contracts (contracts/)                     │
-        │                                                                   │
-        │  MarketRegistry ──creates──▶ Market{subject, closeAt, resolveAt}  │
-        │        ▲                                    │                     │
-        │        │ commit(hash)/reveal()              │ resolve(pythData)   │
-        │  CommitmentRegistry ◀───────┐               ▼                     │
-        │        │ on reveal+resolved  │        Resolver ──reads──▶ Pyth    │
-        │        ▼                     │                                    │
-        │  ReputationScorer ──writes──▶ reputation aggregate per agent      │
-        │        │  links identity                                         │
-        │        ▼                                                          │
-        │  ERC-8004 IdentityRegistry / ReputationRegistry (canonical)       │
-        └───────────────────────────────────────────────────────────────────┘
-                                     ▲
-                                     │ register / commit / reveal / resolve
-                        ┌────────────┴─────────────┐
-                        │      Agent SDK (sdk/)     │  TypeScript + viem
-                        └────────────┬─────────────┘
-                                     │ used by
-                        ┌────────────┴─────────────┐
-                        │  Reference agents (agents/)│  REAL Claude inference
-                        │  Momentum · Contrarian ·   │  → sign → commit → reveal
-                        │  Macro   (distinct strats) │
-                        └───────────────────────────┘
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │                          Reckon core engine (packages/core)               │
+   │  simulate() → revert?  ·  gasModel() → tightest correct limit             │
+   │  quoteCost() → worst-case MON  ·  preflight()/safeSend() verdicts         │
+   │  (viem; Monad opcode repricing + buffer strategies)                       │
+   └───────┬───────────────────────────┬───────────────────────────┬──────────┘
+           │ imported by               │ imported by               │ targets
+           ▼                           ▼                           ▼
+ ┌───────────────────┐      ┌────────────────────────┐   ┌────────────────────────┐
+ │  SDK / middleware │      │  MCP agent guard        │   │  GuardedExecutor (sol)  │
+ │  (packages/sdk)   │      │  (packages/agent)       │   │  (contracts/)           │
+ │  drop-in viem     │      │  reckon_preflight,      │   │  batched exec, per-call │
+ │  wrapper for apps │      │  reckon_safe_send,      │   │  gas cap, max-fee ceil, │
+ │  & deploy scripts │      │  reckon_quote_cost      │   │  policy; EIP-7702 route │
+ └─────────┬─────────┘      └───────────┬────────────┘   └────────────┬───────────┘
+           │                            │                             │
+           ▼                            ▼                             ▼
+ ┌─────────────────────────────────────────────────────────────────────────────┐
+ │                         Monad testnet (RPC + contracts)                       │
+ └─────────────────────────────────────────────────────────────────────────────┘
+           ▲
+           │ reads live data (blocked txs, MON saved, receipts)
+ ┌─────────┴───────────────────────┐
+ │  Dashboard (web/) Next.js+Shadcn │  "MON saved" · per-tx receipts · limit vs naive
+ └──────────────────────────────────┘
 ```
 
-### 4.1 Contracts (Foundry, Solidity ^0.8.24, OpenZeppelin)
+### 4.1 `packages/core` — the pre-flight engine (viem, TypeScript)
+- `simulate(tx)` — `eth_call` + state overrides (and `debug_traceCall` where useful) to detect
+  reverts pre-broadcast, decoding the revert reason.
+- `gasModel(tx)` — computes the tightest *correct* gas limit using Monad's real pricing (cold
+  account 10,100 / cold storage 8,100 / precompile multipliers) plus a buffer strategy:
+  static (~7.5%, per published research) and dynamic-by-`(to, selector)` history.
+- `quoteCost(tx)` — worst-case MON the sender will actually be charged (`limit × price`).
+- `preflight(tx)` → `{ ok, willRevert, revertReason, recommendedGasLimit, worstCaseFeeMON,
+  overpayVsWalletDefault }`. `safeSend(tx)` refuses to broadcast doomed txs.
 
-- **AgentRegistry (adapter):** links a Reckon agent to its ERC-8004 identity (agentId) and
-  stores a model-metadata pointer. Spike first (Phase 1) to learn the deployed registry's
-  real interface before committing to write-integration; fall back to identity-linkage +
-  local reputation if writes are gated.
-- **MarketRegistry:** a market = `{subjectFeedId, question(direction), closeAt, resolveAt, oracle}`.
-  Permissionless or curator-created. Enforces `closeAt < resolveAt`.
-- **CommitmentRegistry (core):**
-  - `commit(marketId, commitmentHash, confidenceBps)` — before `closeAt`. Stores hash of
-    `(agentId, marketId, prediction, confidenceBps, salt)` + block timestamp. Optional
-    signature so the contract can `ecrecover` the author.
-  - `reveal(marketId, prediction, confidenceBps, salt)` — after `closeAt`; verifies hash.
-  - Hindsight is impossible: commit closes strictly before the outcome exists.
-- **Resolver:** `resolve(marketId, pythUpdateData)` — permissionless; updates Pyth with the
-  signed price blob, reads the price at/after `resolveAt`, records the outcome.
-- **ReputationScorer:** on `reveal` of a resolved market, computes a **Brier score** +
-  accuracy contribution and updates the agent's aggregate `{count, correct, weightedBrier,
-  calibration, streak, updatedAt}`. Score is computed on-chain → cannot be self-reported.
+### 4.2 `packages/sdk` — drop-in for dApps & deploy scripts
+Thin viem middleware / wallet client wrapper: call `client.safeSend(tx)` and get pre-flight for
+free. Zero-config Monad chain wiring.
 
-### 4.2 Agent SDK (`sdk/`, TypeScript + viem)
-`registerAgent`, `createMarket`, `commitPrediction`, `revealPrediction`, `resolveMarket`,
-`getReputation`, `getReceipt`. Encapsulates Monad specifics: 10 MON reserve floor,
-`eth_sendRawTransactionSync`, gas-limit conventions, block tags.
+### 4.3 `packages/agent` — MCP server / agent guard
+Exposes `reckon_preflight`, `reckon_safe_send`, `reckon_quote_cost` as MCP tools so any AI agent
+routes every transaction through the seatbelt. Client-side policy (max fee/tx, daily cap) mirrored
+on-chain by the GuardedExecutor.
 
-### 4.3 Reference agents (`agents/`, TypeScript)
-2–3 agents with distinct strategies (Momentum / Contrarian / Macro). Each pulls **real**
-market data, calls the **Claude API** (`claude-sonnet-5`) for a genuine prediction +
-confidence + reasoning, signs, and commits on-chain — then reveals and triggers resolution.
-Runs as a keeper loop. **No hardcoded predictions** (anti-vaporware).
+### 4.4 `contracts/` — GuardedExecutor (Foundry, Solidity ^0.8.24, OpenZeppelin)
+- `execute(Call[] calls, uint256 perCallGasCap, uint256 maxFeeWei)` — batched executor with a
+  per-call gas cap and a max-fee ceiling; refuses over-budget/failing calls cheaply and predictably.
+- EIP-7702-delegatable so an EOA/agent can route transactions through it.
+- **Honest value:** it makes the correct limit *predictable and bounded* (so you can declare tight
+  limits safely) and enforces on-chain policy for agents. It does **not** refund gas — Monad charges
+  on the limit, so real savings come from pre-broadcast (§5).
 
-### 4.4 Frontend (`web/`, Next.js + Wagmi v3 + Shadcn + Para)
-- **Leaderboard** — agents ranked by verifiable reputation.
-- **Agent page** — full track record; every prediction links to commit/reveal/resolve txs.
-- **Receipt page** — one prediction: hash, confidence, commit tx+timestamp, revealed content,
-  resolution price+tx, computed score.
-- **Live markets** — open markets, committed hashes, countdowns.
-- Data via Envio HyperIndex + direct RPC. Design via `/tastemaker`; UI tests before any
-  "it works" claim.
+### 4.5 `web/` — dashboard (Next.js + Wagmi v3 + Shadcn + Para)
+Live "MON saved" from real blocked/right-sized txs; per-tx receipt pages (simulation verdict,
+recommended vs naive limit, worst-case cost, on-chain result); wallet via Para. Design via
+`/tastemaker`; every claim browser-tested.
 
-## 5. Verifiability properties (honest accounting)
+## 5. Honest accounting of where the savings come from
 
-| Property | Mechanism | Real now? |
-|---|---|---|
-| No hindsight editing | commit-before-resolve, timestamped on-chain | ✅ |
-| Outcome not gameable by agent | Pyth-signed price resolves the market | ✅ (pending Phase-2 flow verification) |
-| Reputation not self-reported | score computed on-chain by contract | ✅ |
-| Authorship provable | commit signed; contract `ecrecover`s signer | ✅ |
-| **Model**-authorship provable (a real model, not a human) | TEE-attested inference | ⏳ **STRETCH — not promised** |
+- **Pre-broadcast is where money is saved:** not sending doomed txs (avoid full-limit fee) and
+  declaring the tightest correct limit. Once a tx is on-chain, Monad charges the limit — **no
+  refunds are possible**, so no component pretends to refund.
+- The **on-chain GuardedExecutor** adds *predictability + policy*, not refunds.
+- Every savings/΄cost claim in the demo is measured against **real testnet transactions**.
 
 ## 6. Phases & milestones
 
-- **Phase 0 — Foundations.** Repo, README, PLAN, verified-primitives table, scaffolding config.
-  _Milestone:_ repo pushed; empty scaffold builds. **(this document)**
-- **Phase 1 — Core contracts + tests.** All contracts vs. a mock oracle; forge unit + fuzz tests;
-  ERC-8004 interface spike. _Milestone:_ `forge test` green; commit-reveal + scoring proven.
-- **Phase 2 — Oracle + testnet deploy.** Wire Pyth pull resolution; verify Hermes→update→read on
-  testnet in isolation; deploy + verify all contracts. _Milestone:_ a real market created **and
-  resolved from a real Pyth price** on testnet, with explorer links.
-- **Phase 3 — SDK + reference agents.** SDK; 2–3 agents doing real Claude inference + on-chain
-  commit/reveal; keeper loop. _Milestone:_ agents autonomously run predict→commit→reveal→resolve
-  →score live on testnet; reputation updates on-chain.
-- **Phase 4 — Frontend.** Envio indexer; leaderboard/agent/receipt/live-markets; Para wallet;
-  tastemaker design + UI tests. _Milestone:_ deployed app showing live testnet data; every claim
-  browser-tested.
-- **Phase 5 — (Stretch) TEE-attested inference.** Only if 0–4 are solid and tested.
+- **Phase 0 — Foundations.** ✅ Repo, plan, README, **empirical gas-model verification** committed.
+- **Phase 1 — Core engine + tests.** `packages/core`: simulate + gasModel + quoteCost + preflight;
+  unit tests against real testnet tx fixtures. _Milestone:_ `preflight` correctly flags a known
+  reverting tx and returns a tighter-but-safe limit than a wallet default, demonstrated on real
+  testnet data; tests green.
+- **Phase 2 — GuardedExecutor + deploy.** Foundry contract + tests; deploy + verify on testnet.
+  _Milestone:_ on-chain guarded batch that refuses an over-budget call, with explorer links + a
+  verified contract address.
+- **Phase 3 — SDK + MCP agent guard (real agent).** `packages/sdk` + `packages/agent`; a real
+  Claude-driven agent that pre-flights before sending; run live on testnet. _Milestone:_ agent
+  attempts doomed + over-sized txs, Reckon blocks/right-sizes them, **MON saved quantified on-chain**.
+- **Phase 4 — Dashboard.** Next.js app on live testnet data; Para wallet; tastemaker design + UI
+  tests. _Milestone:_ deployed app; every displayed claim browser-verified.
+- **Phase 5 — (Stretch) consumer surface.** A wallet/browser pre-flight popup: "this tx will revert
+  and cost you X MON." Only if 1–4 are solid.
 - **Phase 6 — Submission.** Demo video (≤3 min), social post, contract address, repo, project URL.
 
-**Build order rationale:** contracts define the ABI everything depends on → prove resolution
-against the real oracle (biggest external risk) before building on it → agents produce the data
-→ UI consumes it → stretch → package.
+**Build order rationale:** the core engine is the dependency for every surface → prove it on real
+data → put the guarded contract on-chain → agents/SDK produce live savings → dashboard visualizes
+them → package.
 
 ## 7. Risks & mitigations
 
-- **Pyth pull-flow complexity** → verify in isolation (Phase 2) before depending on it; documented
-  testnet-only fallback resolver if Pyth flow blocks, but Pyth is the goal.
-- **ERC-8004 registry interface unknown** (deployed bytecode is small — likely a proxy) → Phase-1
-  spike introspects the real interface; if writes are gated, keep Reckon reputation local and link
-  identity by agentId. **Verify before designing the adapter.**
-- **Agent wallet limits** (10 MON reserve floor, ~1 tx/1.2s for low balances) → fund agent wallets
-  from the faucet; stagger txs; use sync tx.
-- **Time (deadline Jul 19)** → Phases 1–4 are the winning submission; Phase 5 is explicitly optional.
+- **Simulation accuracy under async execution** (state drift between `latest` and execution) →
+  simulate against the correct block tag; keep a safety buffer; validate against real tx fixtures.
+- **Funding agent wallets** (10 MON reserve floor, ~1 tx/1.2s for low balances) → fund from faucet;
+  stagger txs; use `eth_sendRawTransactionSync`. _Faucet needs the user (captcha/auth) — will surface._
+- **Over-claiming savings** → only measure against real testnet txs; the honest accounting in §5
+  stays front-and-center; empirically re-verify before any headline number.
+- **Time (deadline Jul 19)** → Phases 1–4 are the winning submission; Phase 5 is optional.
 
-## 8. Standing rules for this build
+## 8. Standing rules
 
-- Never claim something works without an actual end-to-end test (browser/tooling). If untested or
-  incomplete, say so.
-- Correctness over speed. Commit + push regularly; keep this doc and the README current.
-- Built with Monskills; UI via `/tastemaker`.
+Never claim something works without an end-to-end test. Correctness over speed. Commit + push
+regularly; keep this doc and the README current. Built with Monskills; UI via `/tastemaker`.
