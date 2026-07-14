@@ -1,0 +1,37 @@
+{
+  "network": "monad-testnet",
+  "agent": "0xD02aD9e6ee5Cb8eC8Add5E7c630C4f4dE5018867",
+  "naiveTotalMON": "0.0408",
+  "reckonTotalMON": "0.002431476",
+  "savedMON": "0.038368524",
+  "reductionPct": 94.04,
+  "scenarios": [
+    {
+      "scenario": "doomed action (revert)",
+      "naive": {
+        "tx": "0x5d8511529f03cc99a111fc8a642533e34aa69e461acfdae037c8d848a7d16081",
+        "status": "reverted",
+        "spentMON": "0.0204"
+      },
+      "reckon": {
+        "action": "blocked pre-broadcast",
+        "spentMON": "0"
+      },
+      "savedMON": "0.0204"
+    },
+    {
+      "scenario": "healthy action (oversized naive limit)",
+      "naive": {
+        "tx": "0x2d078c510c6b957ff06f61c957217244ac539416baf4ddffe22d585a4debe689",
+        "status": "success",
+        "spentMON": "0.0204"
+      },
+      "reckon": {
+        "tx": "0x495010d7ceb39bad89b4e86c2372d88b84a441f8732eb2c86adfb16d500146e1",
+        "status": "success",
+        "spentMON": "0.002431476"
+      },
+      "savedMON": "0.017968524"
+    }
+  ]
+}

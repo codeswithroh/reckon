@@ -11,11 +11,20 @@
 
 ## Status
 
-🟢 **Phase 2 complete** — the on-chain `GuardedExecutor` is **deployed and source-verified on Monad
-testnet** at [`0x84e5C3c524f473c19821ae2D1494b274730bB6AE`](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE)
-(16/16 contract tests + a real `execute()` batch run through it on-chain). The core pre-flight
-engine (`packages/core`) is built and tested against live testnet (18/18). Next: the SDK + MCP
-agent guard (Phase 3). See **[PLAN.md](./PLAN.md)**.
+🟢 **Phase 3 complete** — all three surfaces are built, tested, and proven on live Monad testnet:
+
+- **`packages/core`** — pre-flight engine (18/18 tests).
+- **`packages/sdk`** — drop-in viem wrapper + on-chain batch routing (4/4 tests).
+- **`packages/agent`** — MCP server so AI agents pre-flight every tx (4/4 tests, real MCP client).
+- **`contracts/`** — `GuardedExecutor` deployed + source-verified at
+  [`0x84e5C3c524f473c19821ae2D1494b274730bB6AE`](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE)
+  (16/16 tests).
+
+**Live proof — a real agent, real transactions:** a naive agent burned **0.0408 MON** (a reverted
+tx plus an oversized-limit tx); the same agent guarded by Reckon spent **0.0024 MON** — a **94%
+reduction**, every transaction verifiable on the explorer. See `packages/agent/demo/`.
+
+Next: the dashboard (Phase 4). See **[PLAN.md](./PLAN.md)**.
 
 Run the engine yourself:
 
