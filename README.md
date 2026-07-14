@@ -2,6 +2,10 @@
 
 **A transaction seatbelt for Monad.** Stop burning MON on failed and over-sized transactions.
 
+**Live app → [reckon-monad-seatbelt.netlify.app](https://reckon-monad-seatbelt.netlify.app)** ·
+**Repo → [github.com/codeswithroh/reckon](https://github.com/codeswithroh/reckon)** ·
+**Contract → [`0x84e5…B6AE`](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE)**
+
 > On Monad you pay for the gas limit you declare — **not the gas you use, and even when your
 > transaction reverts.** Reckon pre-flights every transaction: it simulates it, refuses to
 > broadcast doomed ones, and sets the tightest *correct* gas limit — so you never pay for a

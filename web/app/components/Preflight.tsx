@@ -1,19 +1,9 @@
 "use client";
 import { useState } from "react";
 import { PRESETS, type Preset } from "../lib/presets";
+import { runPreflight, type PreflightResult } from "../lib/preflightClient";
 
-interface Verdict {
-  ok: boolean;
-  willRevert: boolean;
-  revertReason: string | null;
-  recommendedGasLimit: string | null;
-  gasPrice: string;
-  worstCaseFeeMON: string | null;
-  naiveGasLimit: string | null;
-  naiveFeeMON: string | null;
-  savingsVsNaiveMON: string | null;
-  notes: string[];
-}
+type Verdict = PreflightResult;
 
 const short = (v: string | null, n = 8) =>
   v && v.length > n * 2 ? `${v.slice(0, n)}…${v.slice(-4)}` : v ?? "—";
@@ -45,14 +35,8 @@ export function PreflightWidget() {
     setError(null);
     setVerdict(null);
     try {
-      const res = await fetch("/api/preflight", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(tx),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "preflight failed");
-      setVerdict(json as Verdict);
+      const result = await runPreflight(tx);
+      setVerdict(result);
     } catch (e) {
       setError(e instanceof Error ? e.message : "failed");
     } finally {
