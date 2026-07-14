@@ -11,9 +11,11 @@
 
 ## Status
 
-🟢 **Phase 1 complete** — the core pre-flight engine (`packages/core`) is built and tested against
-live Monad testnet (18/18 tests pass: 14 unit + 4 live). Next: the on-chain GuardedExecutor
-(Phase 2). See **[PLAN.md](./PLAN.md)**.
+🟢 **Phase 2 complete** — the on-chain `GuardedExecutor` is **deployed and source-verified on Monad
+testnet** at [`0x84e5C3c524f473c19821ae2D1494b274730bB6AE`](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE)
+(16/16 contract tests + a real `execute()` batch run through it on-chain). The core pre-flight
+engine (`packages/core`) is built and tested against live testnet (18/18). Next: the SDK + MCP
+agent guard (Phase 3). See **[PLAN.md](./PLAN.md)**.
 
 Run the engine yourself:
 

@@ -55,8 +55,11 @@ All 16 tests run on Foundry's local EVM — no network or funds needed.
 
 ## Deployed addresses
 
-_Populated after Phase 2 deployment._
+| Network | Address | Status |
+|---|---|---|
+| Monad testnet (10143) | [`0x84e5C3c524f473c19821ae2D1494b274730bB6AE`](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE) | ✅ deployed & source-verified |
 
-| Network | Address |
-|---|---|
-| Monad testnet (10143) | _pending funding + deploy_ |
+- Deploy tx: [`0x3a2800…e4dc7`](https://testnet.monadexplorer.com/tx/0x3a2800dc5ab50807cb2482ae7607f7e9ccc45556953ebcfcbea6faeccdfe4dc7)
+- Example live `execute()` batch: [`0x314cca…42ac5`](https://testnet.monadexplorer.com/tx/0x314cca306b7c0cd8581fb47fc1fcc18875673a7b21342c99a5a743e519d42ac5)
+  (ran a real Multicall3 read through the guard; emitted `CallExecuted` + `BatchExecuted`)
+- Verified: [MonadVision](https://testnet.monadvision.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE) · [Monadscan](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE)
