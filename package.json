@@ -5,7 +5,8 @@
   "description": "A transaction seatbelt for Monad — pre-flight every tx so you stop burning MON on failures and oversized gas limits.",
   "license": "MIT",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "web"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",

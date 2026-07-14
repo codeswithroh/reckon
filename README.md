@@ -11,7 +11,7 @@
 
 ## Status
 
-🟢 **Phase 3 complete** — all three surfaces are built, tested, and proven on live Monad testnet:
+🟢 **Phase 4 complete** — the full stack is built, tested, and browser-verified:
 
 - **`packages/core`** — pre-flight engine (18/18 tests).
 - **`packages/sdk`** — drop-in viem wrapper + on-chain batch routing (4/4 tests).
@@ -19,12 +19,15 @@
 - **`contracts/`** — `GuardedExecutor` deployed + source-verified at
   [`0x84e5C3c524f473c19821ae2D1494b274730bB6AE`](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE)
   (16/16 tests).
+- **`web/`** — a live dashboard with an interactive pre-flight widget (real testnet calls), the
+  on-chain naive-vs-Reckon proof, and the deployed contract. Verified in-browser: both the BLOCK and
+  OK paths render from live testnet with no console errors.
 
 **Live proof — a real agent, real transactions:** a naive agent burned **0.0408 MON** (a reverted
 tx plus an oversized-limit tx); the same agent guarded by Reckon spent **0.0024 MON** — a **94%
 reduction**, every transaction verifiable on the explorer. See `packages/agent/demo/`.
 
-Next: the dashboard (Phase 4). See **[PLAN.md](./PLAN.md)**.
+Next: demo video + submission (Phase 6); optional TEE/consumer surface (Phase 5). See **[PLAN.md](./PLAN.md)**.
 
 Run the engine yourself:
 
