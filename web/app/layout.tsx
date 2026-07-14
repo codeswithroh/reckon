@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: "Reckon: a transaction seatbelt for Monad",
   description:
     "On Monad you pay for the gas limit you declare, even when a tx reverts. Reckon pre-flights every transaction so you stop burning MON on failures and oversized limits.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

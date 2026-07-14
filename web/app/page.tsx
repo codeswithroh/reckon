@@ -1,53 +1,24 @@
-import { PreflightWidget } from "./components/Preflight";
+import Link from "next/link";
+import { Header } from "./components/Header";
+import { Footer } from "./components/Footer";
 import { RevealController } from "./components/Reveal";
 import { HeroDiagram } from "./components/HeroDiagram";
+import { GasChargeDiagram } from "./components/GasChargeDiagram";
+import { BarChart } from "./components/BarChart";
+import { Icon } from "./components/Icon";
 import demo from "./lib/demo-results.json";
-import { GUARDED_EXECUTOR } from "./lib/presets";
 
-const EXPLORER = "https://testnet.monadexplorer.com";
-const MONADSCAN = "https://testnet.monadscan.com";
-
-function Mark() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M12 2 3 6v6c0 5 3.8 8.4 9 10 5.2-1.6 9-5 9-10V6l-9-4Z"
-        stroke="#836EF9"
-        strokeWidth="1.6"
-        fill="rgba(131,110,249,0.12)"
-      />
-      <path d="M8.5 12.2l2.6 2.6 4.6-5.1" stroke="#A996FF" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-const shortHash = (h: string) => `${h.slice(0, 10)}…${h.slice(-6)}`;
-
-export default function Page() {
-  const s0 = demo.scenarios[0]!;
-  const s1 = demo.scenarios[1]!;
+export default function LandingPage() {
   return (
     <div className="wrap">
       <RevealController />
+      <Header variant="landing" />
 
-      <nav className="nav">
-        <div className="brand">
-          <Mark />
-          Reckon
-        </div>
-        <div className="nav-links">
-          <a href="#try">Try it</a>
-          <a href="#proof">Proof</a>
-          <a href="#surfaces">Surfaces</a>
-          <a href="https://github.com/codeswithroh/reckon">GitHub ↗</a>
-        </div>
-      </nav>
-
-      {/* HERO */}
+      {/* 1. HERO */}
       <header className="hero">
         <div className="hero-grid">
           <div className="hero-copy">
-            <span className="eyebrow">Monad testnet · live</span>
+            <span className="eyebrow">Monad testnet &middot; live</span>
             <h1>
               A transaction seatbelt
               <br />
@@ -61,9 +32,9 @@ export default function Page() {
               limit.
             </p>
             <div className="cta-row">
-              <a className="btn btn-primary" href="#try">
-                Try the live pre-flight
-              </a>
+              <Link className="btn btn-primary" href="/app">
+                Launch the app
+              </Link>
               <a className="btn" href="https://github.com/codeswithroh/reckon">
                 Read the code
               </a>
@@ -85,7 +56,7 @@ export default function Page() {
           </div>
           <div className="stat" data-reveal>
             <div className="num accent">3</div>
-            <div className="lbl">surfaces: SDK · MCP agent guard · on-chain</div>
+            <div className="lbl">surfaces: SDK &middot; MCP agent guard &middot; on-chain</div>
           </div>
           <div className="stat" data-reveal>
             <div className="num">42</div>
@@ -94,149 +65,75 @@ export default function Page() {
         </div>
       </header>
 
-      {/* TRY IT */}
-      <section id="try">
+      {/* 2. PROBLEM */}
+      <section id="problem">
         <div className="sec-head">
           <span className="sec-num">01</span>
-          <h2>Pre-flight a transaction, live</h2>
+          <h2>The problem: you pay for the limit, not the usage</h2>
         </div>
-        <p className="sec-sub">
-          Pick a scenario (or paste your own target + calldata). Reckon runs a real{" "}
-          <span className="mono">eth_estimateGas</span> against Monad testnet and returns a verdict:
-          send it or don&apos;t, at what gas limit, and what it would cost.
-        </p>
-        <PreflightWidget />
+        <div className="problem-grid">
+          <div>
+            <p className="sec-sub" style={{ marginBottom: 20 }}>
+              Ethereum-model chains charge you for the gas your transaction actually consumed. Monad
+              charges you for the gas limit you <em>declared</em>, whether you used it or not, and
+              even when the transaction reverts. Set a loose limit (or let your wallet pad one for
+              you) and you overpay on every single send.
+            </p>
+            <div className="incident-stats" data-reveal>
+              <div className="incident-stat">
+                <div className="num">$112.7K</div>
+                <div className="lbl">burned by one Monad airdrop recipient on failed txs</div>
+              </div>
+              <div className="incident-stat">
+                <div className="num">~6%</div>
+                <div className="lbl">of Monad testnet transactions fail (vs 0.9% on Ethereum)</div>
+              </div>
+            </div>
+          </div>
+          <div className="section-visual" data-reveal>
+            <GasChargeDiagram />
+          </div>
+        </div>
       </section>
 
-      {/* PROOF */}
-      <section id="proof">
+      {/* 3. HOW IT WORKS */}
+      <section id="how-it-works">
         <div className="sec-head">
           <span className="sec-num">02</span>
-          <h2>Naive agent vs. Reckon-guarded, on-chain</h2>
-        </div>
-        <p className="sec-sub">
-          A real autonomous-agent run on testnet. Every number below is a real balance delta; every
-          hash links to the Monad explorer.
-        </p>
-        <div className="cmp" data-reveal>
-          <div className="cmp-row head">
-            <div className="cmp-cell">Action</div>
-            <div className="cmp-cell">Naive agent</div>
-            <div className="cmp-cell">Reckon-guarded</div>
-          </div>
-          <div className="cmp-row">
-            <div className="cmp-cell">
-              {s0.scenario}
-              <br />
-              <span className="blurb">Reckon blocks it before broadcast.</span>
-            </div>
-            <div className="cmp-cell">
-              <div className="amt burn">{Number(s0.naive.spentMON).toPrecision(3)} MON</div>
-              <a className="txlink" href={`${EXPLORER}/tx/${s0.naive.tx}`}>
-                {shortHash(s0.naive.tx)} ↗
-              </a>
-              <div className="blurb">reverted, burned anyway</div>
-            </div>
-            <div className="cmp-cell">
-              <div className="amt save">0 MON</div>
-              <div className="blurb">blocked pre-broadcast</div>
-            </div>
-          </div>
-          <div className="cmp-row">
-            <div className="cmp-cell">
-              {s1.scenario}
-              <br />
-              <span className="blurb">Reckon right-sizes the gas limit.</span>
-            </div>
-            <div className="cmp-cell">
-              <div className="amt burn">{Number(s1.naive.spentMON).toPrecision(3)} MON</div>
-              <a className="txlink" href={`${EXPLORER}/tx/${s1.naive.tx}`}>
-                {shortHash(s1.naive.tx)} ↗
-              </a>
-              <div className="blurb">200k-gas padded limit</div>
-            </div>
-            <div className="cmp-cell">
-              <div className="amt save">{Number(s1.reckon.spentMON).toPrecision(3)} MON</div>
-              <a className="txlink" href={`${EXPLORER}/tx/${s1.reckon.tx}`}>
-                {shortHash(s1.reckon.tx!)} ↗
-              </a>
-              <div className="blurb">tight, safe limit</div>
-            </div>
-          </div>
-          <div className="cmp-row">
-            <div className="cmp-cell">
-              <strong>Total</strong>
-            </div>
-            <div className="cmp-cell">
-              <div className="amt burn">{Number(demo.naiveTotalMON).toPrecision(3)} MON</div>
-              <div className="blurb">burned</div>
-            </div>
-            <div className="cmp-cell">
-              <div className="amt save">{Number(demo.reckonTotalMON).toPrecision(3)} MON</div>
-              <div className="blurb">spent, {demo.reductionPct}% less</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CONTRACT */}
-      <section>
-        <div className="sec-head">
-          <span className="sec-num">03</span>
-          <h2>On-chain guard, deployed &amp; verified</h2>
-        </div>
-        <p className="sec-sub">
-          <span className="mono">GuardedExecutor</span>: bounded, predictable batch execution with
-          per-caller policy (value caps, gas-price ceiling, target allowlist). It can&apos;t refund
-          gas (Monad charges the limit); its job is safe, tight, policy-checked execution.
-        </p>
-        <div className="contract" data-reveal>
-          <div>
-            <div className="verified">✓ source-verified on MonadVision &amp; Monadscan</div>
-            <div className="addr" style={{ marginTop: 8 }}>
-              {GUARDED_EXECUTOR}
-            </div>
-          </div>
-          <div className="cta-row" style={{ marginTop: 0 }}>
-            <a className="btn" href={`${MONADSCAN}/address/${GUARDED_EXECUTOR}`}>
-              Monadscan ↗
-            </a>
-            <a className="btn" href={`${EXPLORER}/address/${GUARDED_EXECUTOR}`}>
-              Explorer ↗
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* SURFACES */}
-      <section id="surfaces">
-        <div className="sec-head">
-          <span className="sec-num">04</span>
           <h2>Three surfaces, one seatbelt</h2>
         </div>
         <p className="sec-sub">
-          The same pre-flight engine, wherever transactions originate.
+          The same pre-flight engine, wherever your transactions originate from.
         </p>
-        <div className="surfaces">
-          <div className="card" data-reveal>
+        <div className="icon-surfaces">
+          <div className="icon-card" data-reveal>
+            <div className="icon-badge">
+              <Icon name="terminal" />
+            </div>
             <span className="tag">packages/sdk</span>
             <h3>Drop-in SDK</h3>
             <p>
               A viem wrapper: <span className="mono">preflight()</span>,{" "}
-              <span className="mono">safeSend()</span>, and batch routing through the on-chain guard.
-              Add the seatbelt to any dApp or deploy script.
+              <span className="mono">safeSend()</span>, and batch routing through the on-chain
+              guard. Add the seatbelt to any dApp or deploy script.
             </p>
           </div>
-          <div className="card" data-reveal>
+          <div className="icon-card" data-reveal>
+            <div className="icon-badge">
+              <Icon name="bot" />
+            </div>
             <span className="tag">packages/agent</span>
             <h3>MCP agent guard</h3>
             <p>
-              An MCP server exposing <span className="mono">reckon_preflight</span> so any AI agent
-              checks every transaction before sending. Agents fire the most txs, and are the most
-              exposed.
+              An MCP server exposing <span className="mono">reckon_preflight</span> so any AI
+              agent checks every transaction before sending. Agents fire the most txs, and are the
+              most exposed.
             </p>
           </div>
-          <div className="card" data-reveal>
+          <div className="icon-card" data-reveal>
+            <div className="icon-badge">
+              <Icon name="shield-check" />
+            </div>
             <span className="tag">contracts/</span>
             <h3>On-chain GuardedExecutor</h3>
             <p>
@@ -247,47 +144,37 @@ export default function Page() {
         </div>
       </section>
 
-      {/* WALLET GUARD */}
-      <section id="wallet-guard">
+      {/* 4. PROOF SUMMARY */}
+      <section id="proof">
         <div className="sec-head">
-          <span className="sec-num">05</span>
-          <h2>Protect a whole dApp&apos;s users in one line</h2>
+          <span className="sec-num">03</span>
+          <h2>Proof, not a promise</h2>
         </div>
         <p className="sec-sub">
-          Wrap any EIP-1193 wallet provider. Every <span className="mono">eth_sendTransaction</span>{" "}
-          is pre-flighted first: doomed transactions are blocked before the wallet even prompts, and
-          healthy ones get the tightest correct gas limit. No UI to build, no user action.
+          A real autonomous agent, run twice on live testnet: once naive, once Reckon-guarded.
         </p>
-        <div className="code" data-reveal>
-          <div>
-            <span className="c">
-              {"// wrap the injected wallet. done."}
-            </span>
+        <div className="proof-summary">
+          <div className="section-visual" data-reveal>
+            <BarChart
+              data={[
+                { label: "Naive agent", value: Number(demo.naiveTotalMON), colorVar: "var(--block)" },
+                { label: "Reckon-guarded", value: Number(demo.reckonTotalMON), colorVar: "var(--ok)" },
+              ]}
+            />
           </div>
-          <div>
-            <span className="k">import</span> {"{ createGuardedProvider }"} <span className="k">from</span>{" "}
-            <span className="s">&quot;@reckon/sdk&quot;</span>;
-          </div>
-          <div>&nbsp;</div>
-          <div>
-            <span className="k">const</span> provider = <span className="f">createGuardedProvider</span>
-            (window.ethereum);
-          </div>
-          <div>
-            <span className="c">{"// a tx that would revert now throws before the wallet opens."}</span>
-          </div>
-          <div>
-            <span className="c">{"// the user never signs it, and never burns MON on a failure."}</span>
+          <div data-reveal>
+            <p className="sec-sub" style={{ marginBottom: 20 }}>
+              Every number is a real balance delta, every hash is a real testnet transaction. No
+              mocked state, anywhere.
+            </p>
+            <Link className="btn btn-primary" href="/app/proof">
+              See the full on-chain evidence &rarr;
+            </Link>
           </div>
         </div>
       </section>
 
-      <footer>
-        <span>Reckon · built on Monad testnet · MIT</span>
-        <span className="mono">
-          <a href="https://github.com/codeswithroh/reckon">github.com/codeswithroh/reckon</a>
-        </span>
-      </footer>
+      <Footer />
     </div>
   );
 }

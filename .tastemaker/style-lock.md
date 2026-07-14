@@ -45,7 +45,26 @@ stat tiles (94% / MON burned vs spent), a gas-limit bar comparison. Prose only a
 
 ## Assets
 
-No stock photography/illustration — a technical dev-infra dashboard; the "visuals" are live data
-components (verdict cards, comparison, stat tiles), which is the honest right call here. Logo: a
-constructed geometric mark (a shield/seatbelt motif) in accent purple. Icons: inline SVG, single
-stroke weight.
+No stock photography/illustration — a technical dev-infra dashboard; the "visuals" are constructed
+diagrams and live data components (GasChargeDiagram, HeroDiagram, BarChart, verdict cards,
+comparison tables, stat tiles), which is the honest right call here. Logo: a constructed geometric
+mark (a shield/seatbelt motif) in accent purple, also used as an SVG favicon (raster favicon/OG
+export skipped — system `cairo` unavailable; SVG favicon works in all current browsers).
+
+Icons: fetched via Iconify (`scripts/fetch_icons.py`, Lucide set, no attribution needed), tinted to
+the locked accent, inlined as `currentColor` React components in `web/app/components/Icon.tsx` so
+they can theme per-context. One stroke weight (2) throughout: shield-check, zap, terminal, bot,
+link-2, alert-triangle, check-circle-2, x-circle, bar-chart-3, wallet, code-2, fuel.
+
+## Site architecture (multi-page, added 2026-07-15)
+
+- **Landing (`/`)** — marketing only, no embedded tool. Header + footer + 4 sections: hero,
+  problem (GasChargeDiagram + incident stats), how-it-works (3 icon cards), proof summary
+  (BarChart + CTA into the full evidence page).
+- **Product app (`/app/*`)** — the actual tool, in its own shell (`.app-shell-banner` + tab-style
+  nav via `Header variant="app"`): `/app` (pre-flight dashboard), `/app/proof` (full on-chain
+  evidence + BarChart + tx-by-tx table), `/app/integrate` (tabbed SDK/MCP/wallet-guard docs via
+  `IntegrateTabs.tsx`).
+- Next static export requires `trailingSlash: true` once a route (`/app`) is also a parent of
+  nested routes (`/app/proof`) — without it, export produces a colliding `app.html` file and `app/`
+  directory that 404s on clean-URL resolution. Confirmed this the hard way; keep trailingSlash on.

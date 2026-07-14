@@ -24,9 +24,10 @@
 - **`contracts/`** — `GuardedExecutor` deployed + source-verified at
   [`0x84e5C3c524f473c19821ae2D1494b274730bB6AE`](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE)
   (16/16 tests).
-- **`web/`** — a live dashboard with an interactive pre-flight widget (real testnet calls), the
-  on-chain naive-vs-Reckon proof, and the deployed contract. Verified in-browser: both the BLOCK and
-  OK paths render from live testnet with no console errors.
+- **`web/`** — a multi-page site: a marketing landing page (`/`) and a separate product app with
+  three flows (`/app` dashboard, `/app/proof` full evidence, `/app/integrate` docs). Verified
+  end-to-end on the live production URL: all four routes, both pre-flight verdict paths (BLOCK/OK)
+  hitting live testnet, and every internal nav link — zero console errors anywhere.
 
 **Live proof — a real agent, real transactions:** a naive agent burned **0.0408 MON** (a reverted
 tx plus an oversized-limit tx); the same agent guarded by Reckon spent **0.0024 MON** — a **94%

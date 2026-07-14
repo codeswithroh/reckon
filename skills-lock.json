@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "hackathon-winner": {
+      "source": "codeswithroh/hackathon-winner",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "4a04e4482ae219a916a2e2562ef05e23cfb9dc9a1eb4332f6e18c6ee51ffcb6f"
+    },
     "monskill": {
       "source": "therealharpaljadeja/monskills",
       "sourceType": "github",
