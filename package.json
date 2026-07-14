@@ -1,0 +1,14 @@
+{
+  "name": "reckon",
+  "private": true,
+  "version": "0.0.0",
+  "description": "A transaction seatbelt for Monad — pre-flight every tx so you stop burning MON on failures and oversized gas limits.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  }
+}

@@ -11,8 +11,19 @@
 
 ## Status
 
-🟢 **Phase 0 complete** — problem verified on live testnet, plan locked. Building Phase 1 (core
-engine) next. See **[PLAN.md](./PLAN.md)**.
+🟢 **Phase 1 complete** — the core pre-flight engine (`packages/core`) is built and tested against
+live Monad testnet (18/18 tests pass: 14 unit + 4 live). Next: the on-chain GuardedExecutor
+(Phase 2). See **[PLAN.md](./PLAN.md)**.
+
+Run the engine yourself:
+
+```bash
+npm install
+cd packages/core && npm run build && node examples/demo.mjs
+```
+
+It pre-flights a healthy tx (recommends a tight 21,000-gas limit) and a doomed one (refuses to
+broadcast, decodes the revert, and reports the MON it just saved you) — all against real testnet.
 
 ## The problem (verified, not assumed)
 
