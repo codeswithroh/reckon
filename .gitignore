@@ -15,7 +15,6 @@ web/.next/
 contracts/out/
 contracts/cache/
 contracts/broadcast/**/dry-run/
-contracts/lib/
 
 # env & secrets
 .env
