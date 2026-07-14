@@ -490,6 +490,31 @@ h2 {
   word-break: break-all;
 }
 
+/* code block */
+.code {
+  border: 1px solid var(--border);
+  background: #0d0d13;
+  border-radius: 12px;
+  padding: 20px 22px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+}
+.code .c {
+  color: var(--text-muted);
+}
+.code .k {
+  color: var(--accent-text);
+}
+.code .s {
+  color: #6bd18a;
+}
+.code .f {
+  color: #d6c98a;
+}
+
 footer {
   border-top: 1px solid var(--border);
   padding: 32px 0 60px;

@@ -238,6 +238,41 @@ export default function Page() {
         </div>
       </section>
 
+      {/* WALLET GUARD */}
+      <section id="wallet-guard">
+        <div className="sec-head">
+          <span className="sec-num">05</span>
+          <h2>Protect a whole dApp&apos;s users — one line</h2>
+        </div>
+        <p className="sec-sub">
+          Wrap any EIP-1193 wallet provider. Every <span className="mono">eth_sendTransaction</span>{" "}
+          is pre-flighted first: doomed transactions are blocked before the wallet even prompts, and
+          healthy ones get the tightest correct gas limit — no UI to build, no user action.
+        </p>
+        <div className="code" data-reveal>
+          <div>
+            <span className="c">
+              {"// wrap the injected wallet — done."}
+            </span>
+          </div>
+          <div>
+            <span className="k">import</span> {"{ createGuardedProvider }"} <span className="k">from</span>{" "}
+            <span className="s">&quot;@reckon/sdk&quot;</span>;
+          </div>
+          <div>&nbsp;</div>
+          <div>
+            <span className="k">const</span> provider = <span className="f">createGuardedProvider</span>
+            (window.ethereum);
+          </div>
+          <div>
+            <span className="c">{"// a tx that would revert now throws before the wallet opens —"}</span>
+          </div>
+          <div>
+            <span className="c">{"// the user never signs it, and never burns MON on a failure."}</span>
+          </div>
+        </div>
+      </section>
+
       <footer>
         <span>Reckon · built on Monad testnet · MIT</span>
         <span className="mono">

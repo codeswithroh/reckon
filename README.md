@@ -14,7 +14,8 @@
 🟢 **Phase 4 complete** — the full stack is built, tested, and browser-verified:
 
 - **`packages/core`** — pre-flight engine (18/18 tests).
-- **`packages/sdk`** — drop-in viem wrapper + on-chain batch routing (4/4 tests).
+- **`packages/sdk`** — drop-in viem wrapper, on-chain batch routing, and a one-line EIP-1193
+  **wallet guard** (`createGuardedProvider`) that blocks doomed sends before the wallet prompts (8/8 tests).
 - **`packages/agent`** — MCP server so AI agents pre-flight every tx (4/4 tests, real MCP client).
 - **`contracts/`** — `GuardedExecutor` deployed + source-verified at
   [`0x84e5C3c524f473c19821ae2D1494b274730bB6AE`](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE)
