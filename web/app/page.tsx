@@ -1,5 +1,6 @@
 import { PreflightWidget } from "./components/Preflight";
 import { RevealController } from "./components/Reveal";
+import { HeroDiagram } from "./components/HeroDiagram";
 import demo from "./lib/demo-results.json";
 import { GUARDED_EXECUTOR } from "./lib/presets";
 
@@ -44,25 +45,33 @@ export default function Page() {
 
       {/* HERO */}
       <header className="hero">
-        <span className="eyebrow">Monad testnet · live</span>
-        <h1>
-          A transaction seatbelt
-          <br />
-          for <span className="accent">Monad</span>.
-        </h1>
-        <p className="tagline">// a screenshot can lie. a receipt can&apos;t.</p>
-        <p className="subhead">
-          On Monad you pay for the gas limit you declare — <strong>not</strong> the gas you use, and
-          even when your transaction reverts. Reckon pre-flights every transaction: it simulates it,
-          refuses to broadcast doomed ones, and sets the tightest correct gas limit.
-        </p>
-        <div className="cta-row">
-          <a className="btn btn-primary" href="#try">
-            Try the live pre-flight
-          </a>
-          <a className="btn" href="https://github.com/codeswithroh/reckon">
-            Read the code
-          </a>
+        <div className="hero-grid">
+          <div className="hero-copy">
+            <span className="eyebrow">Monad testnet · live</span>
+            <h1>
+              A transaction seatbelt
+              <br />
+              for <span className="accent">Monad</span>.
+            </h1>
+            <p className="tagline">// a screenshot can lie. a receipt can&apos;t.</p>
+            <p className="subhead">
+              On Monad you pay for the gas limit you declare, <strong>not</strong> the gas you use,
+              and even when your transaction reverts. Reckon pre-flights every transaction: it
+              simulates it, refuses to broadcast doomed ones, and sets the tightest correct gas
+              limit.
+            </p>
+            <div className="cta-row">
+              <a className="btn btn-primary" href="#try">
+                Try the live pre-flight
+              </a>
+              <a className="btn" href="https://github.com/codeswithroh/reckon">
+                Read the code
+              </a>
+            </div>
+          </div>
+          <div className="hero-visual" data-reveal aria-hidden="false">
+            <HeroDiagram />
+          </div>
         </div>
 
         <div className="stats">
@@ -103,7 +112,7 @@ export default function Page() {
       <section id="proof">
         <div className="sec-head">
           <span className="sec-num">02</span>
-          <h2>Naive agent vs. Reckon-guarded — on-chain</h2>
+          <h2>Naive agent vs. Reckon-guarded, on-chain</h2>
         </div>
         <p className="sec-sub">
           A real autonomous-agent run on testnet. Every number below is a real balance delta; every
@@ -126,7 +135,7 @@ export default function Page() {
               <a className="txlink" href={`${EXPLORER}/tx/${s0.naive.tx}`}>
                 {shortHash(s0.naive.tx)} ↗
               </a>
-              <div className="blurb">reverted — burned anyway</div>
+              <div className="blurb">reverted, burned anyway</div>
             </div>
             <div className="cmp-cell">
               <div className="amt save">0 MON</div>
@@ -164,7 +173,7 @@ export default function Page() {
             </div>
             <div className="cmp-cell">
               <div className="amt save">{Number(demo.reckonTotalMON).toPrecision(3)} MON</div>
-              <div className="blurb">spent — {demo.reductionPct}% less</div>
+              <div className="blurb">spent, {demo.reductionPct}% less</div>
             </div>
           </div>
         </div>
@@ -177,7 +186,7 @@ export default function Page() {
           <h2>On-chain guard, deployed &amp; verified</h2>
         </div>
         <p className="sec-sub">
-          <span className="mono">GuardedExecutor</span> — bounded, predictable batch execution with
+          <span className="mono">GuardedExecutor</span>: bounded, predictable batch execution with
           per-caller policy (value caps, gas-price ceiling, target allowlist). It can&apos;t refund
           gas (Monad charges the limit); its job is safe, tight, policy-checked execution.
         </p>
@@ -223,7 +232,7 @@ export default function Page() {
             <h3>MCP agent guard</h3>
             <p>
               An MCP server exposing <span className="mono">reckon_preflight</span> so any AI agent
-              checks every transaction before sending. Agents fire the most txs — and are the most
+              checks every transaction before sending. Agents fire the most txs, and are the most
               exposed.
             </p>
           </div>
@@ -242,17 +251,17 @@ export default function Page() {
       <section id="wallet-guard">
         <div className="sec-head">
           <span className="sec-num">05</span>
-          <h2>Protect a whole dApp&apos;s users — one line</h2>
+          <h2>Protect a whole dApp&apos;s users in one line</h2>
         </div>
         <p className="sec-sub">
           Wrap any EIP-1193 wallet provider. Every <span className="mono">eth_sendTransaction</span>{" "}
           is pre-flighted first: doomed transactions are blocked before the wallet even prompts, and
-          healthy ones get the tightest correct gas limit — no UI to build, no user action.
+          healthy ones get the tightest correct gas limit. No UI to build, no user action.
         </p>
         <div className="code" data-reveal>
           <div>
             <span className="c">
-              {"// wrap the injected wallet — done."}
+              {"// wrap the injected wallet. done."}
             </span>
           </div>
           <div>
@@ -265,7 +274,7 @@ export default function Page() {
             (window.ethereum);
           </div>
           <div>
-            <span className="c">{"// a tx that would revert now throws before the wallet opens —"}</span>
+            <span className="c">{"// a tx that would revert now throws before the wallet opens."}</span>
           </div>
           <div>
             <span className="c">{"// the user never signs it, and never burns MON on a failure."}</span>

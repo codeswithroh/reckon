@@ -6,9 +6,9 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "sw
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Reckon — a transaction seatbelt for Monad",
+  title: "Reckon: a transaction seatbelt for Monad",
   description:
-    "On Monad you pay for the gas limit you declare — even when a tx reverts. Reckon pre-flights every transaction so you stop burning MON on failures and oversized limits.",
+    "On Monad you pay for the gas limit you declare, even when a tx reverts. Reckon pre-flights every transaction so you stop burning MON on failures and oversized limits.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

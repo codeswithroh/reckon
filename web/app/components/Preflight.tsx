@@ -6,10 +6,10 @@ import { runPreflight, type PreflightResult } from "../lib/preflightClient";
 type Verdict = PreflightResult;
 
 const short = (v: string | null, n = 8) =>
-  v && v.length > n * 2 ? `${v.slice(0, n)}…${v.slice(-4)}` : v ?? "—";
+  v && v.length > n * 2 ? `${v.slice(0, n)}…${v.slice(-4)}` : v ?? "n/a";
 
 const trimMon = (v: string | null) => {
-  if (!v) return "—";
+  if (!v) return "n/a";
   const n = Number(v);
   return n === 0 ? "0" : n.toPrecision(4).replace(/\.?0+$/, "");
 };
@@ -116,7 +116,7 @@ export function PreflightWidget() {
             {verdict && (
               <>
                 <div className={`badge ${verdict.willRevert ? "block" : "ok"}`}>
-                  {verdict.willRevert ? "● BLOCK — would revert" : "● OK — safe to send"}
+                  {verdict.willRevert ? "● BLOCK: would revert" : "● OK: safe to send"}
                 </div>
                 <div style={{ marginTop: 16 }}>
                   {verdict.willRevert ? (
