@@ -35,8 +35,20 @@ no reference images — palette inferred from the product's mood + Monad's purpl
 
 ## Motion
 
-- IntersectionObserver reveal (fade + 8px rise, staggered), reduced-motion aware. Restrained —
-  this is a data tool, not a marketing splash.
+- **GSAP + ScrollTrigger** (the tastemaker default), via `@gsap/react`'s `useGSAP` hook for correct
+  cleanup. `web/app/lib/motion.ts` holds the locked feel: duration 0.5s, distance 8px, ease
+  `power2.out`, stagger 0.08s. Branches on `prefers-reduced-motion` via `gsap.matchMedia()`.
+  - `components/Reveal.tsx` — scroll-triggered fade+rise for every `[data-reveal]` /
+    `[data-reveal-group]` element, sitewide (ported from `gsap-starter.js`'s CDN pattern).
+  - `components/HeroTimeline.tsx` — sequenced hero entrance (eyebrow → h1 → tagline → subhead →
+    CTA → visual), the landing page's highest-impact motion moment.
+  - `components/CountUp.tsx` — real stat numbers (94.04%, $112.7K, etc.) count up from 0 on
+    scroll-into-view; ties motion to actual proof data, not decoration.
+  - `components/BarChart.tsx` — fills animate via `scaleX` (transform, not `width`, per the
+    animate-only-transform-and-opacity performance rule), staggered per bar.
+  - Verified end-to-end in-browser: confirmed via forced frame-pumping (this dev environment's
+    headless browser only ticks rAF on an explicit paint request) that the full sequence settles
+    at the exact correct final values with zero console errors.
 
 ## Show-don't-tell
 
@@ -48,8 +60,14 @@ stat tiles (94% / MON burned vs spent), a gas-limit bar comparison. Prose only a
 No stock photography/illustration — a technical dev-infra dashboard; the "visuals" are constructed
 diagrams and live data components (GasChargeDiagram, HeroDiagram, BarChart, verdict cards,
 comparison tables, stat tiles), which is the honest right call here. Logo: a constructed geometric
-mark (a shield/seatbelt motif) in accent purple, also used as an SVG favicon (raster favicon/OG
-export skipped — system `cairo` unavailable; SVG favicon works in all current browsers).
+mark (a shield/seatbelt motif) in accent purple.
+
+Favicon: full export completed (favicon.ico, 16/32px PNGs, apple-touch-icon, 192/512 PWA icons,
+OG card) via `export_favicons.py`. System `cairo` was missing initially; installed via
+`brew install cairo`, then run through a Homebrew Python 3.14 venv (the system's SIP-protected
+`/usr/bin/python3` silently ignores `DYLD_LIBRARY_PATH`, so cairo was unreachable from it even
+after installing — the venv sidesteps that). Wired into `layout.tsx` metadata (icons, manifest,
+OpenGraph, Twitter card) and `public/site.webmanifest`.
 
 Icons: fetched via Iconify (`scripts/fetch_icons.py`, Lucide set, no attribution needed), tinted to
 the locked accent, inlined as `currentColor` React components in `web/app/components/Icon.tsx` so

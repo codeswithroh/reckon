@@ -2,10 +2,12 @@ import Link from "next/link";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { RevealController } from "./components/Reveal";
+import { HeroTimeline } from "./components/HeroTimeline";
 import { HeroDiagram } from "./components/HeroDiagram";
 import { GasChargeDiagram } from "./components/GasChargeDiagram";
 import { BarChart } from "./components/BarChart";
 import { Icon } from "./components/Icon";
+import { CountUp } from "./components/CountUp";
 import demo from "./lib/demo-results.json";
 
 export default function LandingPage() {
@@ -16,50 +18,60 @@ export default function LandingPage() {
 
       {/* 1. HERO */}
       <header className="hero">
-        <div className="hero-grid">
-          <div className="hero-copy">
-            <span className="eyebrow">Monad testnet &middot; live</span>
-            <h1>
-              A transaction seatbelt
-              <br />
-              for <span className="accent">Monad</span>.
-            </h1>
-            <p className="tagline">// a screenshot can lie. a receipt can&apos;t.</p>
-            <p className="subhead">
-              On Monad you pay for the gas limit you declare, <strong>not</strong> the gas you use,
-              and even when your transaction reverts. Reckon pre-flights every transaction: it
-              simulates it, refuses to broadcast doomed ones, and sets the tightest correct gas
-              limit.
-            </p>
-            <div className="cta-row">
-              <Link className="btn btn-primary" href="/app">
-                Launch the app
-              </Link>
-              <a className="btn" href="https://github.com/codeswithroh/reckon">
-                Read the code
-              </a>
+        <HeroTimeline>
+          <div className="hero-grid">
+            <div className="hero-copy">
+              <span className="eyebrow">Monad testnet &middot; live</span>
+              <h1>
+                A transaction seatbelt
+                <br />
+                for <span className="accent">Monad</span>.
+              </h1>
+              <p className="tagline">// a screenshot can lie. a receipt can&apos;t.</p>
+              <p className="subhead">
+                On Monad you pay for the gas limit you declare, <strong>not</strong> the gas you
+                use, and even when your transaction reverts. Reckon pre-flights every transaction:
+                it simulates it, refuses to broadcast doomed ones, and sets the tightest correct
+                gas limit.
+              </p>
+              <div className="cta-row">
+                <Link className="btn btn-primary" href="/app">
+                  Launch the app
+                </Link>
+                <a className="btn" href="https://github.com/codeswithroh/reckon">
+                  Read the code
+                </a>
+              </div>
+            </div>
+            <div className="hero-visual" aria-hidden="false">
+              <HeroDiagram />
             </div>
           </div>
-          <div className="hero-visual" data-reveal aria-hidden="false">
-            <HeroDiagram />
-          </div>
-        </div>
+        </HeroTimeline>
 
         <div className="stats">
           <div className="stat" data-reveal>
-            <div className="num good">{demo.reductionPct}%</div>
+            <div className="num good">
+              <CountUp value={demo.reductionPct} decimals={2} suffix="%" />
+            </div>
             <div className="lbl">less MON burned by a Reckon-guarded agent</div>
           </div>
           <div className="stat" data-reveal>
-            <div className="num">100%</div>
+            <div className="num">
+              <CountUp value={100} suffix="%" />
+            </div>
             <div className="lbl">of failed txs charge the full gas limit on Monad</div>
           </div>
           <div className="stat" data-reveal>
-            <div className="num accent">3</div>
+            <div className="num accent">
+              <CountUp value={3} />
+            </div>
             <div className="lbl">surfaces: SDK &middot; MCP agent guard &middot; on-chain</div>
           </div>
           <div className="stat" data-reveal>
-            <div className="num">42</div>
+            <div className="num">
+              <CountUp value={42} />
+            </div>
             <div className="lbl">tests, all against live testnet + local EVM</div>
           </div>
         </div>
@@ -81,11 +93,15 @@ export default function LandingPage() {
             </p>
             <div className="incident-stats" data-reveal>
               <div className="incident-stat">
-                <div className="num">$112.7K</div>
+                <div className="num">
+                  <CountUp value={112.7} decimals={1} prefix="$" suffix="K" />
+                </div>
                 <div className="lbl">burned by one Monad airdrop recipient on failed txs</div>
               </div>
               <div className="incident-stat">
-                <div className="num">~6%</div>
+                <div className="num">
+                  <CountUp value={6} prefix="~" suffix="%" />
+                </div>
                 <div className="lbl">of Monad testnet transactions fail (vs 0.9% on Ethereum)</div>
               </div>
             </div>

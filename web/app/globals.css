@@ -551,25 +551,10 @@ footer {
   gap: 12px;
 }
 
-/* reveal motion */
-[data-reveal] {
-  opacity: 0;
-  transform: translateY(8px);
-  transition:
-    opacity 0.5s ease,
-    transform 0.5s ease;
-}
-[data-reveal].in {
-  opacity: 1;
-  transform: none;
-}
-@media (prefers-reduced-motion: reduce) {
-  [data-reveal] {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-}
+/* reveal motion is driven by GSAP (components/Reveal.tsx + lib/motion.ts), which sets the
+   initial hidden state and animates it via inline styles — no CSS transition here, so the two
+   don't fight. If JS fails, [data-reveal] elements simply stay at their natural opacity (safe
+   failure mode) rather than being stuck invisible. */
 
 .spinner {
   width: 14px;
@@ -725,7 +710,7 @@ footer {
 .barchart-fill {
   height: 100%;
   border-radius: 6px 0 0 6px;
-  transition: width 0.6s ease;
+  /* animated via GSAP scaleX (components/BarChart.tsx), not width — no CSS transition here */
 }
 .barchart-value {
   font-size: 13px;
