@@ -136,6 +136,11 @@ recommended vs naive limit, worst-case cost, on-chain result); wallet via Para. 
 - **Phase 5 — (Stretch) consumer surface.** A wallet/browser pre-flight popup: "this tx will revert
   and cost you X MON." Only if 1–4 are solid.
 - **Phase 6 — Submission.** Demo video (≤3 min), social post, contract address, repo, project URL.
+- **Phase 7 — Market-driven hardening.** ✅ Three research-evidenced additions (not speculative
+  features): an adaptive gas buffer (Category Labs described this and never built it), approval/
+  permission-escalation risk detection (answers a real ~$175K May 2026 agent-drain incident), and
+  an integration recipe (the actual moat mechanism for this product category, per founder-strategy
+  research — becoming the pipeline other tools call, not a dashboard). See §9.
 
 **Build order rationale:** the core engine is the dependency for every surface → prove it on real
 data → put the guarded contract on-chain → agents/SDK produce live savings → dashboard visualizes
@@ -150,6 +155,54 @@ them → package.
 - **Over-claiming savings** → only measure against real testnet txs; the honest accounting in §5
   stays front-and-center; empirically re-verify before any headline number.
 - **Time (deadline Jul 19)** → Phases 1–4 are the winning submission; Phase 5 is optional.
+
+## 9. Phase 7 detail — what the market research actually said, and what we built
+
+Before adding anything, three parallel research passes (agent-economy trends, Monad's specific
+competitive landscape, and dev-infra moat strategy) were run rather than guessing at "founder
+instinct." Each addition below traces to a specific, current, sourced finding — nothing spec'd
+here is speculative.
+
+**1. Adaptive gas buffer** (`packages/core/src/adaptiveBuffer.ts`). Category Labs (Monad's own
+team) publicly proposed a rolling-window, per-`(contract, selector)` gas buffer as the ideal
+approach, but never shipped it — a genuine unclaimed lane. `fetchHistoricalGasUsage` scans real
+recent chain history (successful receipts only, since this repo already proved a Monad receipt's
+`gasUsed` can equal the charged limit rather than true cost); `computeAdaptiveBuffer` turns that
+into a buffer via a documented three-signal formula (coefficient of variation, tail deviation,
+today-vs-history shift). **Deliberately not wired into `preflight()`'s default path** — an early
+version's live test timed out at 150s scanning a quiet contract's history with no early exit,
+which would make every pre-flight call unacceptably slow. Fixed with a hard wall-clock cap
+(`maxDurationMs`, default 8s) and is opt-in only via `PreflightOptions.historicalSamples` — callers
+fetch/cache history separately; `preflight()` itself never triggers its own scan, so it stays fast
+by default (as already proven live in Phase 1).
+
+**2. Approval/permission-escalation risk detection** (`packages/core/src/riskDetection.ts`). In
+May 2026 an autonomous agent lost ~$175K: an NFT grant silently escalated its permissions, then a
+prompt injection got it to sign an unlimited token approval, a call that succeeds on-chain and
+moves zero value itself, so a naive spend-cap or revert check sees nothing wrong. `detectRiskFlags`
+decodes `approve`/`increaseAllowance`/`setApprovalForAll`/`permit` calldata (selectors derived via
+viem, verified against known real values, not hand-typed) and flags exactly this pattern, always
+computed (cheap, synchronous, no RPC) and attached to every `PreflightVerdict` regardless of
+`willRevert`. **Product decision:** Reckon does not auto-block on this in the general SDK/dashboard
+(an `approve()` can be entirely legitimate DeFi usage) — it surfaces severity so the caller decides.
+The MCP agent-guard surface is stricter by design: `reckon_preflight` returns `isError: true` for a
+critical flag even when nothing reverts, because an autonomous agent should not self-authorize a
+critical permission grant without a human in the loop, which is exactly the incident this answers.
+
+**3. Integration recipe** (`examples/agent-framework-recipe/`). Founder-strategy research on this
+exact product category (Tenderly, Blocknative, Gelato, OpenZeppelin Defender) is blunt: the
+historical moat mechanism is not aggregate data and not an enterprise dashboard, it's becoming the
+pipeline other tools call before every send. The minimum viable step identified was a single real
+reference integration, not a feature build. `agent-loop.mjs` is that recipe: a runnable, tested
+example wiring Reckon's MCP server as an agent framework's mandatory pre-flight gate.
+
+**What was deliberately not built:** a dashboard/leaderboard, a token, multi-chain support, an
+enterprise policy UI, on-chain enforcement of risk flags (would require redeploying the already-
+verified `GuardedExecutor` this close to the deadline for uncertain benefit). All three additions
+were built by two parallel isolated-worktree agents plus one done directly; every claim in this
+section was independently re-verified (re-ran each agent's tests myself, fixed one real timeout bug
+and one real bigint-serialization bug the agents' own tests didn't catch, added a new live
+integration test proving the wiring, not just the standalone modules).
 
 ## 8. Standing rules
 

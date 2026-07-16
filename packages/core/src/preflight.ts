@@ -8,6 +8,8 @@ import {
   naiveGasLimit,
   recommendGasLimit,
 } from "./gasModel.js";
+import { detectRiskFlags, summarizeRiskFlags } from "./riskDetection.js";
+import { computeAdaptiveBuffer } from "./adaptiveBuffer.js";
 
 /**
  * Pre-flight a Monad transaction.
@@ -27,10 +29,20 @@ export async function preflight(
   tx: ReckonTxRequest,
   options: PreflightOptions = {},
 ): Promise<PreflightVerdict> {
-  const bufferBps = options.bufferBps ?? DEFAULT_BUFFER_BPS;
   const naiveBufferBps = options.naiveBufferBps ?? NAIVE_BUFFER_BPS;
   const blockTag = options.blockTag ?? "latest";
   const notes: string[] = [];
+
+  // Cheap, synchronous, no RPC — safe to always run, regardless of willRevert.
+  const riskFlags = detectRiskFlags({ to: tx.to, data: tx.data, value: tx.value });
+  const riskSummary = summarizeRiskFlags(riskFlags) || undefined;
+  if (riskSummary) notes.push(riskSummary);
+
+  // Adaptive buffer (opt-in via pre-fetched samples, see PreflightOptions.historicalSamples) is
+  // only meaningful once trueMinGas is known (it's one of the buffer's input signals), so it's
+  // computed further down, in the success path — this just decides the static fallback here.
+  const bufferBps = options.bufferBps ?? DEFAULT_BUFFER_BPS;
+  const useAdaptive = options.historicalSamples !== undefined && options.bufferBps === undefined;
 
   const gasPrice = await client.getGasPrice();
   const isNativeTransfer =
@@ -68,13 +80,27 @@ export async function preflight(
       savingsVsNaiveWei: naiveFeeWei,
       savingsVsNaiveMON: formatEther(naiveFeeWei),
       notes,
+      riskFlags,
+      riskSummary,
     };
+  }
+
+  let effectiveBufferBps = bufferBps;
+  let adaptiveBuffer: PreflightVerdict["adaptiveBuffer"];
+  if (useAdaptive) {
+    const adaptive = computeAdaptiveBuffer(options.historicalSamples!, trueMinGas);
+    effectiveBufferBps = adaptive.bufferBps;
+    adaptiveBuffer = adaptive;
+    notes.push(
+      `Adaptive buffer: ${adaptive.bufferBps}bps from ${adaptive.sampleSize} historical sample(s) ` +
+        `(confidence: ${adaptive.confidence}), vs the static ${DEFAULT_BUFFER_BPS}bps default.`,
+    );
   }
 
   const recommendedGasLimit = recommendGasLimit({
     trueMinGas,
     isNativeTransfer,
-    bufferBps,
+    bufferBps: effectiveBufferBps,
   });
   const worstCaseFeeWei = feeForLimit(recommendedGasLimit, gasPrice);
 
@@ -84,7 +110,7 @@ export async function preflight(
     naiveFeeWei > worstCaseFeeWei ? naiveFeeWei - worstCaseFeeWei : 0n;
 
   notes.push(
-    `True minimum gas ${trueMinGas} → recommended limit ${recommendedGasLimit} (+${bufferBps} bps).`,
+    `True minimum gas ${trueMinGas} → recommended limit ${recommendedGasLimit} (+${effectiveBufferBps} bps).`,
   );
   if (tx.gas !== undefined && tx.gas < recommendedGasLimit) {
     notes.push(
@@ -102,7 +128,7 @@ export async function preflight(
     willRevert: false,
     trueMinGas,
     recommendedGasLimit,
-    bufferBps,
+    bufferBps: effectiveBufferBps,
     gasPrice,
     worstCaseFeeWei,
     worstCaseFeeMON: formatEther(worstCaseFeeWei),
@@ -111,5 +137,8 @@ export async function preflight(
     savingsVsNaiveWei,
     savingsVsNaiveMON: formatEther(savingsVsNaiveWei),
     notes,
+    riskFlags,
+    riskSummary,
+    adaptiveBuffer,
   };
 }

@@ -113,57 +113,80 @@ export function PreflightWidget() {
                 {error}
               </div>
             )}
-            {verdict && (
-              <>
-                <div className={`badge ${verdict.willRevert ? "block" : "ok"}`}>
-                  {verdict.willRevert ? "● BLOCK: would revert" : "● OK: safe to send"}
-                </div>
-                <div style={{ marginTop: 16 }}>
-                  {verdict.willRevert ? (
-                    <>
-                      <div className="kv">
-                        <span className="k">revert reason</span>
-                        <span className="v block">{verdict.revertReason ?? "unknown"}</span>
+            {verdict &&
+              (() => {
+                const blockedByRisk = !verdict.willRevert && verdict.hasCriticalRisk;
+                const hardBlock = verdict.willRevert || blockedByRisk;
+                const badgeClass = hardBlock ? "block" : verdict.riskFlags.length > 0 ? "warn" : "ok";
+                const badgeText = verdict.willRevert
+                  ? "● BLOCK: would revert"
+                  : blockedByRisk
+                    ? "● BLOCK: critical permission risk"
+                    : verdict.riskFlags.length > 0
+                      ? "● OK, with a flag: review before sending"
+                      : "● OK: safe to send";
+                return (
+                  <>
+                    <div className={`badge ${badgeClass}`}>{badgeText}</div>
+
+                    {verdict.riskFlags.length > 0 && (
+                      <div className="risk-flags">
+                        {verdict.riskFlags.map((f, i) => (
+                          <div key={i} className={`risk-flag ${f.severity}`}>
+                            <span className="risk-flag-sev">{f.severity.toUpperCase()}</span>
+                            <span className="risk-flag-msg">{f.message}</span>
+                          </div>
+                        ))}
                       </div>
-                      <div className="kv">
-                        <span className="k">Reckon action</span>
-                        <span className="v">not broadcast</span>
-                      </div>
-                      <div className="kv">
-                        <span className="k">MON saved vs naive send</span>
-                        <span className="v good">{trimMon(verdict.savingsVsNaiveMON)} MON</span>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="kv">
-                        <span className="k">recommended gas limit</span>
-                        <span className="v">{verdict.recommendedGasLimit}</span>
-                      </div>
-                      <div className="kv">
-                        <span className="k">naive wallet limit</span>
-                        <span className="v">{verdict.naiveGasLimit}</span>
-                      </div>
-                      <div className="kv">
-                        <span className="k">worst-case cost</span>
-                        <span className="v">{trimMon(verdict.worstCaseFeeMON)} MON</span>
-                      </div>
-                      <div className="kv">
-                        <span className="k">MON saved vs naive</span>
-                        <span className="v good">{trimMon(verdict.savingsVsNaiveMON)} MON</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div style={{ marginTop: 14 }}>
-                  {verdict.notes.map((n, i) => (
-                    <p className="note" key={i}>
-                      {n}
-                    </p>
-                  ))}
-                </div>
-              </>
-            )}
+                    )}
+
+                    <div style={{ marginTop: 16 }}>
+                      {verdict.willRevert ? (
+                        <>
+                          <div className="kv">
+                            <span className="k">revert reason</span>
+                            <span className="v block">{verdict.revertReason ?? "unknown"}</span>
+                          </div>
+                          <div className="kv">
+                            <span className="k">Reckon action</span>
+                            <span className="v">not broadcast</span>
+                          </div>
+                          <div className="kv">
+                            <span className="k">MON saved vs naive send</span>
+                            <span className="v good">{trimMon(verdict.savingsVsNaiveMON)} MON</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="kv">
+                            <span className="k">recommended gas limit</span>
+                            <span className="v">{verdict.recommendedGasLimit}</span>
+                          </div>
+                          <div className="kv">
+                            <span className="k">naive wallet limit</span>
+                            <span className="v">{verdict.naiveGasLimit}</span>
+                          </div>
+                          <div className="kv">
+                            <span className="k">worst-case cost</span>
+                            <span className="v">{trimMon(verdict.worstCaseFeeMON)} MON</span>
+                          </div>
+                          <div className="kv">
+                            <span className="k">MON saved vs naive</span>
+                            <span className="v good">{trimMon(verdict.savingsVsNaiveMON)} MON</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div style={{ marginTop: 14 }}>
+                      {verdict.notes.map((n, i) => (
+                        <p className="note" key={i}>
+                          {n}
+                        </p>
+                      ))}
+                    </div>
+                  </>
+                );
+              })()}
           </div>
         </div>
       </div>

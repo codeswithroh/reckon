@@ -12,10 +12,20 @@ export {
   ReckonRefusedError,
   recommendGasLimit,
   feeForLimit,
+  detectRiskFlags,
+  summarizeRiskFlags,
+  fetchHistoricalGasUsage,
+  computeAdaptiveBuffer,
+  recommendAdaptiveGasLimit,
 } from "@reckon/core";
 export type {
   ReckonTxRequest,
   PreflightOptions,
   PreflightVerdict,
   SafeSendResult,
+  RiskFlag,
+  AdaptiveConfidence,
+  HistoricalGasScanOptions,
+  AdaptiveBufferResult,
+  AdaptiveGasLimitResult,
 } from "@reckon/core";

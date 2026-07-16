@@ -374,6 +374,55 @@ h2 {
   background: rgba(248, 81, 73, 0.12);
   border: 1px solid rgba(248, 81, 73, 0.35);
 }
+.badge.warn {
+  color: var(--warn);
+  background: rgba(227, 179, 65, 0.12);
+  border: 1px solid rgba(227, 179, 65, 0.35);
+}
+
+.risk-flags {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.risk-flag {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: 8px;
+  align-items: baseline;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.risk-flag-sev {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+.risk-flag-msg {
+  color: var(--text);
+}
+.risk-flag.critical {
+  border-color: rgba(248, 81, 73, 0.35);
+}
+.risk-flag.critical .risk-flag-sev {
+  color: var(--block);
+}
+.risk-flag.warning {
+  border-color: rgba(227, 179, 65, 0.35);
+}
+.risk-flag.warning .risk-flag-sev {
+  color: var(--warn);
+}
+.risk-flag.info {
+  border-color: var(--border);
+}
+.risk-flag.info .risk-flag-sev {
+  color: var(--text-muted);
+}
 .kv {
   display: flex;
   justify-content: space-between;

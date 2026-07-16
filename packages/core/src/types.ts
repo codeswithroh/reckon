@@ -1,4 +1,6 @@
 import type { Address, Hex, StateOverride } from "viem";
+import type { RiskFlag } from "./riskDetection.js";
+import type { AdaptiveConfidence } from "./adaptiveBuffer.js";
 
 /** A transaction request to pre-flight. Mirrors the fields Reckon needs. */
 export interface ReckonTxRequest {
@@ -23,6 +25,18 @@ export interface PreflightOptions {
   blockTag?: "latest" | "pending" | "safe" | "finalized";
   /** Optional state overrides for the simulation (e.g. inject a balance to test hypotheticals). */
   stateOverride?: StateOverride;
+  /**
+   * Pre-fetched historical gas-usage samples for this exact `(to, selector)` pair, from
+   * `fetchHistoricalGasUsage` in `./adaptiveBuffer.js`. When supplied, `preflight()` computes an
+   * adaptive, contract-specific buffer instead of the flat `bufferBps` default.
+   *
+   * Deliberately NOT auto-fetched inside `preflight()` itself: scanning chain history can take
+   * up to several seconds (see `adaptiveBuffer.ts`'s `maxDurationMs`), and `preflight()` is meant
+   * to stay fast on every call. Callers that want adaptive buffering should call
+   * `fetchHistoricalGasUsage` once (ideally cached/refreshed periodically per contract) and pass
+   * the result in here.
+   */
+  historicalSamples?: bigint[];
 }
 
 export interface PreflightVerdict {
@@ -59,4 +73,25 @@ export interface PreflightVerdict {
 
   /** Human-readable notes explaining the verdict. */
   notes: string[];
+
+  /**
+   * Approval/permission-escalation risk flags decoded from the calldata (see
+   * `riskDetection.ts`). Always computed, cheap and synchronous — present regardless of
+   * `willRevert`. Empty array when nothing risky was detected. Reckon flags these but does NOT
+   * automatically block sending on them (an `approve()` can be entirely intentional); the
+   * severity is surfaced so the caller/UI can decide how loudly to warn.
+   */
+  riskFlags: RiskFlag[];
+  /** One-line summary of the highest-severity risk flag, or undefined when `riskFlags` is empty. */
+  riskSummary?: string;
+
+  /**
+   * Present only when `options.historicalSamples` was supplied: the adaptive buffer actually
+   * used instead of the flat default, and how much history backed it.
+   */
+  adaptiveBuffer?: {
+    bufferBps: number;
+    confidence: AdaptiveConfidence;
+    sampleSize: number;
+  };
 }

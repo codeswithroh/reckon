@@ -22,3 +22,16 @@ export type {
   PreflightOptions,
   PreflightVerdict,
 } from "./types.js";
+export { detectRiskFlags, summarizeRiskFlags } from "./riskDetection.js";
+export type { RiskFlag } from "./riskDetection.js";
+export {
+  fetchHistoricalGasUsage,
+  computeAdaptiveBuffer,
+  recommendAdaptiveGasLimit,
+} from "./adaptiveBuffer.js";
+export type {
+  AdaptiveConfidence,
+  HistoricalGasScanOptions,
+  AdaptiveBufferResult,
+  AdaptiveGasLimitResult,
+} from "./adaptiveBuffer.js";

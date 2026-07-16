@@ -7,6 +7,13 @@ import { monadTestnet, preflight, type ReckonTxRequest } from "@reckon/core";
  */
 const client = createPublicClient({ chain: monadTestnet, transport: http() });
 
+export interface RiskFlagView {
+  kind: string;
+  severity: "info" | "warning" | "critical";
+  message: string;
+  details?: Record<string, unknown>;
+}
+
 export interface PreflightResult {
   ok: boolean;
   willRevert: boolean;
@@ -17,6 +24,16 @@ export interface PreflightResult {
   naiveGasLimit: string | null;
   savingsVsNaiveMON: string | null;
   notes: string[];
+  riskFlags: RiskFlagView[];
+  riskSummary: string | null;
+  hasCriticalRisk: boolean;
+}
+
+function jsonSafe(details: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
+  if (!details) return undefined;
+  return Object.fromEntries(
+    Object.entries(details).map(([k, v]) => [k, typeof v === "bigint" ? v.toString() : v]),
+  );
 }
 
 export async function runPreflight(input: {
@@ -47,5 +64,8 @@ export async function runPreflight(input: {
     naiveGasLimit: v.naiveGasLimit?.toString() ?? null,
     savingsVsNaiveMON: v.savingsVsNaiveMON ?? null,
     notes: v.notes,
+    riskFlags: v.riskFlags.map((f) => ({ ...f, details: jsonSafe(f.details) })),
+    riskSummary: v.riskSummary ?? null,
+    hasCriticalRisk: v.riskFlags.some((f) => f.severity === "critical"),
   };
 }

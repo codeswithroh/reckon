@@ -131,7 +131,8 @@ export default function LandingPage() {
             <p>
               A viem wrapper: <span className="mono">preflight()</span>,{" "}
               <span className="mono">safeSend()</span>, and batch routing through the on-chain
-              guard. Add the seatbelt to any dApp or deploy script.
+              guard. Optionally learns a per-contract gas buffer from real chain history instead
+              of a flat percentage. Add the seatbelt to any dApp or deploy script.
             </p>
           </div>
           <div className="icon-card" data-reveal>
@@ -142,8 +143,9 @@ export default function LandingPage() {
             <h3>MCP agent guard</h3>
             <p>
               An MCP server exposing <span className="mono">reckon_preflight</span> so any AI
-              agent checks every transaction before sending. Agents fire the most txs, and are the
-              most exposed.
+              agent checks every transaction before sending. It blocks reverts and flags
+              permission-escalating calls (unlimited approvals, NFT operator grants) even when
+              they&apos;d succeed, the pattern behind a real ~$175K agent-drain incident.
             </p>
           </div>
           <div className="icon-card" data-reveal>

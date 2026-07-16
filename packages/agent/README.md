@@ -9,10 +9,19 @@ the agent whether to send, at what gas limit, and what it will cost.
 
 | Tool | Purpose |
 |---|---|
-| `reckon_preflight` | Full check: revert detection, tightest safe gas limit, worst-case MON cost. Returns `isError: true` for a doomed tx so the agent stops. |
+| `reckon_preflight` | Full check: revert detection, approval/permission-escalation risk flags (unlimited ERC-20 allowances, NFT operator grants, EIP-2612 permits), tightest safe gas limit, worst-case MON cost. Returns `isError: true` for a doomed tx *or* a critical risk flag, so the agent stops either way. |
 | `reckon_quote_cost` | Quick gut-check: worst-case MON and whether it would revert. |
 
 Inputs: `{ from, to?, data?, value? (wei string), bufferBps?, rpcUrl? }`.
+
+### Why a critical risk flag blocks even when nothing reverts
+
+In May 2026 an autonomous agent lost ~$175K: an attacker sent it an NFT that silently granted an
+elevated role, then used a prompt injection to get it to sign what looked routine, actually an
+unlimited token approval. That call succeeds on-chain; a naive "did it revert?" check sees nothing
+wrong. `reckon_preflight` decodes `approve`/`increaseAllowance`/`setApprovalForAll`/`permit`
+calldata and flags exactly this pattern, `isError: true` regardless of revert status, so an agent
+integration that just checks `isError` still gets stopped before signing.
 
 ## Run
 

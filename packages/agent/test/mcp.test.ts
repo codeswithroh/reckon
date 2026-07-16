@@ -87,6 +87,42 @@ describe("Reckon MCP server (live)", () => {
     expect(textOf(res)).toContain("BLOCK");
   }, 30_000);
 
+  it("reckon_preflight BLOCKS a critical approval risk even though it would NOT revert", async () => {
+    // approve(spender, MAX_UINT256) — succeeds on-chain (no revert), but grants an unlimited
+    // allowance. This is the exact pattern behind the May 2026 ~$175K agent-drain incident: a
+    // naive "did it revert?" check sees nothing wrong here.
+    const MAX_UINT256 = 2n ** 256n - 1n;
+    const data = encodeFunctionData({
+      abi: [
+        {
+          type: "function",
+          name: "approve",
+          stateMutability: "nonpayable",
+          inputs: [
+            { name: "spender", type: "address" },
+            { name: "amount", type: "uint256" },
+          ],
+          outputs: [{ name: "", type: "bool" }],
+        },
+      ],
+      functionName: "approve",
+      args: [getAddress("0x000000000000000000000000000000000000dEaD"), MAX_UINT256],
+    });
+
+    const res = (await client.callTool({
+      name: "reckon_preflight",
+      arguments: { from: FROM, to: MULTICALL3, data },
+    })) as { content: Array<{ type: string; text?: string }>; isError?: boolean };
+
+    expect(res.isError).toBe(true);
+    const text = textOf(res);
+    expect(text).toContain("BLOCK");
+    expect(text).toContain("CRITICAL");
+    const jsonText = res.content.find((c) => c.type === "text" && c.text?.trim().startsWith("{"))?.text;
+    expect(jsonText).toBeTruthy();
+    expect(JSON.parse(jsonText!).hasCriticalRisk).toBe(true);
+  }, 30_000);
+
   it("reckon_quote_cost returns a worst-case MON figure", async () => {
     const res = (await client.callTool({
       name: "reckon_quote_cost",

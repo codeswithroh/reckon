@@ -29,8 +29,13 @@ export function createServer(): McpServer {
 
   server.tool(
     "reckon_preflight",
-    "Pre-flight a Monad transaction before sending: detect reverts, compute the tightest safe gas " +
-      "limit, and estimate the worst-case MON cost. Call this before every send.",
+    "Pre-flight a Monad transaction before sending: detect reverts, flag approval/permission-" +
+      "escalation risk (unlimited ERC-20 allowances, NFT operator grants, EIP-2612 permits), " +
+      "compute the tightest safe gas limit, and estimate the worst-case MON cost. Call this " +
+      "before every send. Treat isError:true as a hard stop, whether it's caused by a revert or " +
+      "by a critical risk flag — a critical flag means the call would SUCCEED but grants a " +
+      "standing permission (e.g. unlimited approve/setApprovalForAll) that could be exploited " +
+      "later, exactly the pattern behind real 2026 agent-drain incidents.",
     txShape,
     async (args) => {
       const s = await runPreflight(args as never);
@@ -39,7 +44,7 @@ export function createServer(): McpServer {
           { type: "text", text: verdictLine(s) },
           { type: "text", text: JSON.stringify(s, null, 2) },
         ],
-        isError: s.willRevert,
+        isError: s.willRevert || s.hasCriticalRisk,
       };
     },
   );
