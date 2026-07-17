@@ -18,17 +18,18 @@
 
 ## Status
 
-🟢 **Phase 7 complete** — the full stack is built, tested, and browser-verified, plus three
-research-evidenced additions (see [PLAN.md §9](./PLAN.md#9-phase-7-detail--what-the-market-research-actually-said-and-what-we-built)):
+🟢 **Phase 8 complete** — the full stack is built, tested, published, and browser-verified:
 
-- **`packages/core`** — pre-flight engine (49/49 tests), plus:
+- **`packages/core`** ([npm](https://www.npmjs.com/package/@codeswithroh/reckon-core)) — pre-flight
+  engine (49/49 tests), plus:
   - an **adaptive gas buffer** learned from real per-contract chain history instead of a flat
     percentage (`adaptiveBuffer.ts`) — a gap Monad's own team described publicly but never shipped.
   - **approval/permission-escalation risk detection** (`riskDetection.ts`): flags unlimited ERC-20
     approvals, NFT operator grants, and EIP-2612 permits, the exact pattern behind a real ~$175K
     agent-drain incident in May 2026, even when the call itself would succeed.
-- **`packages/sdk`** — drop-in viem wrapper, on-chain batch routing, and a one-line EIP-1193
-  **wallet guard** (`createGuardedProvider`) that blocks doomed sends before the wallet prompts (8/8 tests).
+- **`packages/sdk`** ([npm](https://www.npmjs.com/package/@codeswithroh/reckon-sdk)) — drop-in viem
+  wrapper, on-chain batch routing, and a one-line EIP-1193 **wallet guard**
+  (`createGuardedProvider`) that blocks doomed sends before the wallet prompts (8/8 tests).
 - **`packages/agent`** — MCP server so AI agents pre-flight every tx (9/9 tests, real MCP client);
   now blocks critical permission risk, not just reverts.
 - **`contracts/`** — `GuardedExecutor` deployed + source-verified at
@@ -36,10 +37,12 @@ research-evidenced additions (see [PLAN.md §9](./PLAN.md#9-phase-7-detail--what
   (16/16 tests); plus a minimal `MockToken` demo target at
   [`0x1eF032308c9fFfa11277775a3969eBe62dedD68E`](https://testnet.monadscan.com/address/0x1eF032308c9fFfa11277775a3969eBe62dedD68E)
   (6/6 tests).
-- **`web/`** — a multi-page site: a marketing landing page (`/`) and a separate product app with
-  three flows (`/app` dashboard, `/app/proof` full evidence, `/app/integrate` docs). Verified
-  end-to-end on the live production URL: all four routes, every pre-flight verdict path (BLOCK for
-  revert, BLOCK for critical risk, OK) hitting live testnet, zero console errors anywhere.
+- **`web/`** — a marketing landing page (`/`) plus a redesigned product dashboard (`/app`) built
+  around two things a real visitor can actually use: a live **wallet safety report** (connect or
+  paste any address, see real reverted-tx history, MON burned, and outstanding risky approvals,
+  zero calldata typing) and a button-driven **"try it live"** demo (simulated dApp actions like
+  "claim free airdrop", not raw hex). See `web/README.md` for what's tested vs. a known gap in the
+  real-wallet click-through path.
 - **`examples/agent-framework-recipe/`** — a runnable recipe wiring Reckon's MCP server as an agent
   framework's mandatory pre-flight gate, tested live against real testnet.
 

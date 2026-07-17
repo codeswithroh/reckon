@@ -12,6 +12,7 @@
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "@codeswithroh/reckon-core": "*",
+    "@codeswithroh/reckon-sdk": "*",
     "gsap": "^3.15.0",
     "next": "14.2.15",
     "react": "^18.3.1",

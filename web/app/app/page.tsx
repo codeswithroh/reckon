@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { RevealController } from "../components/Reveal";
-import { PreflightWidget } from "../components/Preflight";
+import { DashboardApp } from "../components/DashboardApp";
 import { GUARDED_EXECUTOR } from "../lib/presets";
 
 export const metadata: Metadata = {
   title: "Dashboard: Reckon",
-  description: "Pre-flight a Monad transaction live: revert check, tight gas limit, worst-case cost.",
+  description: "Check your Monad wallet's real safety history, live, and try Reckon's guard yourself.",
 };
 
 const MONADSCAN = "https://testnet.monadscan.com";
@@ -20,17 +20,14 @@ export default function DashboardPage() {
       <Header variant="app" />
 
       <div className="app-shell-banner">
-        <h1>Pre-flight dashboard</h1>
+        <h1>Your Monad safety dashboard</h1>
         <p>
-          Pick a scenario or paste your own target + calldata. Reckon runs a real{" "}
-          <span className="mono">eth_estimateGas</span> against Monad testnet, live, right now, and
-          returns a verdict: send it or don&apos;t, at what gas limit, and what it would cost.
+          Two things you can actually do here: see what your own wallet has really been doing on
+          Monad testnet, and watch Reckon block a risky action live, on your own screen.
         </p>
       </div>
 
-      <section style={{ paddingTop: 12 }}>
-        <PreflightWidget />
-      </section>
+      <DashboardApp />
 
       <section>
         <div className="sec-head">

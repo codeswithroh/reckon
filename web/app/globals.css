@@ -863,3 +863,230 @@ footer {
 .tab-panel .code {
   margin-top: 0;
 }
+
+/* ---- wallet connect bar ---- */
+.wallet-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  border-radius: 10px;
+}
+.wallet-bar.connected {
+  border-color: rgba(63, 185, 80, 0.35);
+  background: rgba(63, 185, 80, 0.06);
+}
+.wallet-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 3px rgba(63, 185, 80, 0.2);
+}
+.wallet-addr {
+  font-size: 13.5px;
+}
+.wallet-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.wallet-or {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.wallet-paste {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  min-width: 220px;
+  flex: 1;
+}
+.wallet-paste:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.wallet-error {
+  color: var(--block);
+  font-size: 12.5px;
+}
+
+/* ---- wallet report ---- */
+.report-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 22px;
+}
+.report-empty {
+  color: var(--text-muted);
+  font-size: 13.5px;
+  padding: 8px 0;
+}
+.report-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+@media (max-width: 780px) {
+  .report-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.report-stat {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 14px;
+}
+.report-stat .num {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+.report-stat .num.good {
+  color: var(--ok);
+}
+.report-stat .num.block {
+  color: var(--block);
+}
+.report-stat .num.warn {
+  color: var(--warn);
+}
+.report-stat .lbl {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.report-clean {
+  margin-top: 16px;
+  color: var(--ok);
+  font-size: 13.5px;
+}
+.report-section {
+  margin-top: 20px;
+}
+.report-section h4 {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.report-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.report-row:last-child {
+  border-bottom: none;
+}
+.report-row-flags {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.report-row-flags:last-child {
+  border-bottom: none;
+}
+.report-row-flags .risk-flags {
+  margin-top: 6px;
+}
+
+/* ---- guarded action cards ---- */
+.action-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.action-card {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  cursor: pointer;
+  font-family: var(--sans);
+}
+.action-card:hover {
+  border-color: #3a3a48;
+}
+.action-card.active {
+  border-color: var(--accent);
+  background: rgba(131, 110, 249, 0.08);
+}
+.action-emoji {
+  font-size: 22px;
+  line-height: 1;
+  grid-row: 1 / 3;
+  align-self: center;
+}
+.action-title {
+  font-weight: 600;
+  font-size: 13.5px;
+  display: block;
+}
+.action-tagline {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 2px;
+}
+
+.wallet-try {
+  margin-top: 4px;
+  margin-bottom: 16px;
+}
+.wallet-try-result {
+  font-size: 12.5px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.wallet-try-result.blocked {
+  color: var(--block);
+  border-color: rgba(248, 81, 73, 0.35);
+  background: rgba(248, 81, 73, 0.08);
+}
+.wallet-try-result.allowed {
+  color: var(--ok);
+  border-color: rgba(63, 185, 80, 0.35);
+  background: rgba(63, 185, 80, 0.08);
+}
+
+.advanced-toggle {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 8px 0;
+}
+.advanced-toggle:hover {
+  color: var(--text);
+}
+.advanced-panel {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
