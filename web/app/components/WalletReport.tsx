@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createPublicClient, http, formatEther, encodeFunctionData, type Address, type Hex } from "viem";
+import { useConnection } from "wagmi";
 import { monadTestnet, type RiskFlag } from "@codeswithroh/reckon-core";
 import { scanWalletActivity, type WalletScanResult, type RiskyTx } from "../lib/walletScan";
 import { narrateRiskFlag } from "../lib/narrate";
@@ -74,23 +75,22 @@ function buildRevokeTx(flag: RiskFlag, token: Address): { to: Address; data: Hex
   }
 }
 
-type WindowWithEthereum = Window & {
-  ethereum?: { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> };
-};
-
 type RevokeState = { kind: "idle" } | { kind: "pending" } | { kind: "done"; hash: string } | { kind: "error"; message: string };
 
 function RevokeButton({ flag, tx, from }: { flag: RiskFlag; tx: RiskyTx; from: Address }) {
+  const { connector } = useConnection();
   const [state, setState] = useState<RevokeState>({ kind: "idle" });
   const revokeTx = tx.to ? buildRevokeTx(flag, tx.to) : null;
   if (!revokeTx) return null;
 
   async function revoke() {
-    const eth = (window as unknown as WindowWithEthereum).ethereum;
-    if (!eth || !revokeTx) return;
+    if (!connector || !revokeTx) return;
     setState({ kind: "pending" });
     try {
-      const hash = (await eth.request({
+      const provider = (await connector.getProvider()) as {
+        request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+      };
+      const hash = (await provider.request({
         method: "eth_sendTransaction",
         params: [{ from, to: revokeTx.to, data: revokeTx.data }],
       })) as string;
@@ -152,7 +152,10 @@ function reportHeadline(result: WalletScanResult): { text: string; tone: "ok" | 
 
 export function WalletReport({ wallet }: { wallet: WalletState }) {
   const address = wallet.address;
-  const canRevoke = wallet.isRealWallet;
+  const { address: connectedAddress, isConnected } = useConnection();
+  // Revoking sends a real tx `from` the scanned address — only offer it when the wallet actually
+  // connected in this tab is that same address, not whatever address happens to be pasted/shown.
+  const canRevoke = isConnected && !!connectedAddress && !!address && connectedAddress.toLowerCase() === address.toLowerCase();
   const [result, setResult] = useState<WalletScanResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

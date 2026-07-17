@@ -34,7 +34,7 @@ export function DashboardApp() {
           every transaction before it&apos;s signed, in any dApp you use, not just this page.
         </p>
         <div className="report-card" data-reveal>
-          <GuardConsole wallet={wallet} />
+          <GuardConsole />
         </div>
       </section>
 

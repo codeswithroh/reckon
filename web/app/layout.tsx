@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { Web3Provider } from "./components/Web3Provider";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -52,7 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         }
         className={`${inter.variable} ${mono.variable}`}
       >
-        {children}
+        <Web3Provider>{children}</Web3Provider>
       </body>
     </html>
   );

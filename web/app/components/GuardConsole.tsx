@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useRef, useState } from "react";
+import { useConnection } from "wagmi";
 import {
   createGuardedProvider,
   type Eip1193Provider,
@@ -7,7 +8,6 @@ import {
 } from "@codeswithroh/reckon-sdk";
 import { narrateVerdict } from "../lib/narrate";
 import type { PreflightResult, RiskFlagView } from "../lib/preflightClient";
-import type { WalletState } from "./WalletConnect";
 
 function jsonSafeDetails(details?: Record<string, unknown>): Record<string, unknown> | undefined {
   if (!details) return undefined;
@@ -50,8 +50,11 @@ interface GuardEvent {
 
 type WindowWithEthereum = Window & { ethereum?: Eip1193Provider };
 
-export function GuardConsole({ wallet }: { wallet: WalletState }) {
+export function GuardConsole() {
+  const { isConnected, connector } = useConnection();
   const [active, setActive] = useState(false);
+  const [enabling, setEnabling] = useState(false);
+  const [enableError, setEnableError] = useState<string | null>(null);
   const [events, setEvents] = useState<GuardEvent[]>([]);
   const [checkedCount, setCheckedCount] = useState(0);
   const [blockedCount, setBlockedCount] = useState(0);
@@ -60,55 +63,70 @@ export function GuardConsole({ wallet }: { wallet: WalletState }) {
   const originalRef = useRef<Eip1193Provider | null>(null);
   const idRef = useRef(0);
 
-  const enable = useCallback(() => {
-    if (typeof window === "undefined") return;
-    const win = window as unknown as WindowWithEthereum;
-    const eth = win.ethereum;
-    if (!eth) return;
-    originalRef.current = eth;
-    const guarded = createGuardedProvider(eth, {
-      mode: "block",
-      onVerdict: (verdict, tx) => {
-        const view = toResultView(verdict);
-        const outcome: GuardEvent["outcome"] = verdict.willRevert
-          ? "blocked"
-          : view.hasCriticalRisk
-            ? "flagged"
-            : "allowed";
-        setCheckedCount((c) => c + 1);
-        if (outcome === "blocked") setBlockedCount((c) => c + 1);
-        if (outcome === "flagged") setFlaggedCount((c) => c + 1);
-        setSavedMON((s) => s + Number(verdict.savingsVsNaiveMON ?? "0"));
-        idRef.current += 1;
-        setEvents((evs) =>
-          [
-            {
-              id: idRef.current,
-              to: typeof tx.to === "string" ? tx.to : undefined,
-              outcome,
-              narrative: narrateVerdict(view),
-            },
-            ...evs,
-          ].slice(0, 20),
-        );
-      },
-    });
-    win.ethereum = guarded;
-    setActive(true);
-  }, []);
+  const enable = useCallback(async () => {
+    if (typeof window === "undefined" || !connector) return;
+    setEnableError(null);
+    setEnabling(true);
+    try {
+      // Ask wagmi for the *actual* provider behind the connected connector, rather than trusting
+      // a possibly-stale `window.ethereum` global (the source of the original flakiness: multiple
+      // extensions racing to own that one object).
+      const provider = (await connector.getProvider()) as Eip1193Provider;
+      const win = window as unknown as WindowWithEthereum;
+      originalRef.current = win.ethereum ?? null;
+      const guarded = createGuardedProvider(provider, {
+        mode: "block",
+        onVerdict: (verdict, tx) => {
+          const view = toResultView(verdict);
+          const outcome: GuardEvent["outcome"] = verdict.willRevert
+            ? "blocked"
+            : view.hasCriticalRisk
+              ? "flagged"
+              : "allowed";
+          setCheckedCount((c) => c + 1);
+          if (outcome === "blocked") setBlockedCount((c) => c + 1);
+          if (outcome === "flagged") setFlaggedCount((c) => c + 1);
+          setSavedMON((s) => s + Number(verdict.savingsVsNaiveMON ?? "0"));
+          idRef.current += 1;
+          setEvents((evs) =>
+            [
+              {
+                id: idRef.current,
+                to: typeof tx.to === "string" ? tx.to : undefined,
+                outcome,
+                narrative: narrateVerdict(view),
+              },
+              ...evs,
+            ].slice(0, 20),
+          );
+        },
+      });
+      // Dapps that check the ambient `window.ethereum` global (the vast majority) pick up the
+      // guarded version for the rest of this tab. Wallets only reachable via EIP-6963 announce
+      // events (no window.ethereum shim) aren't interceptable this way — a real gap, not silently
+      // pretended away.
+      win.ethereum = guarded;
+      setActive(true);
+    } catch (e) {
+      setEnableError(e instanceof Error ? e.message : "Could not read the wallet's provider.");
+    } finally {
+      setEnabling(false);
+    }
+  }, [connector]);
 
   const disable = useCallback(() => {
-    if (typeof window === "undefined" || !originalRef.current) return;
-    (window as unknown as WindowWithEthereum).ethereum = originalRef.current;
+    if (typeof window === "undefined") return;
+    const win = window as unknown as WindowWithEthereum;
+    if (originalRef.current) win.ethereum = originalRef.current;
     originalRef.current = null;
     setActive(false);
   }, []);
 
-  if (!wallet.isRealWallet) {
+  if (!isConnected) {
     return (
       <div className="guard-console-empty">
         <p className="blurb">
-          Connect a real injected wallet above to turn this on. Once enabled, Reckon wraps it in
+          Connect a real wallet above to turn this on. Once enabled, Reckon wraps its provider in
           this browser tab: every transaction any Monad testnet dApp asks it to sign gets
           pre-flighted first, before your wallet ever prompts you.
         </p>
@@ -130,8 +148,8 @@ export function GuardConsole({ wallet }: { wallet: WalletState }) {
             Disable
           </button>
         ) : (
-          <button className="btn btn-primary btn-sm" onClick={enable}>
-            Enable Reckon Guard
+          <button className="btn btn-primary btn-sm" onClick={enable} disabled={enabling}>
+            {enabling ? "Enabling…" : "Enable Reckon Guard"}
           </button>
         )}
         {active && (
@@ -143,6 +161,8 @@ export function GuardConsole({ wallet }: { wallet: WalletState }) {
           </div>
         )}
       </div>
+
+      {enableError && <p className="wallet-error">{enableError}</p>}
 
       {active && (
         <p className="blurb" style={{ marginTop: 10 }}>

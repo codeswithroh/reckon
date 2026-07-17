@@ -1,15 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { isAddress } from "viem";
-
-declare global {
-  interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-      isMetaMask?: boolean;
-    };
-  }
-}
+import { useConnect, useConnection, useConnectors, useDisconnect } from "wagmi";
 
 export interface WalletState {
   address: `0x${string}` | null;
@@ -22,51 +14,43 @@ export function WalletConnect({
 }: {
   onChange: (state: WalletState) => void;
 }) {
-  const [hasInjected, setHasInjected] = useState(false);
-  const [connecting, setConnecting] = useState(false);
-  const [connectedAddress, setConnectedAddress] = useState<`0x${string}` | null>(null);
+  const connectors = useConnectors();
+  const { connect, isPending: connecting, error: connectError } = useConnect();
+  const { disconnect } = useDisconnect();
+  const { address: connectedAddress, isConnected } = useConnection();
+
   const [pasted, setPasted] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [pastedAddress, setPastedAddress] = useState<`0x${string}` | null>(null);
+  const [pasteError, setPasteError] = useState<string | null>(null);
 
+  // A manually pasted address takes priority for "what to inspect" until cleared, even if a real
+  // wallet is also connected — this mirrors the previous behaviour (paste always overrides).
   useEffect(() => {
-    setHasInjected(typeof window !== "undefined" && !!window.ethereum);
-  }, []);
-
-  async function connect() {
-    if (!window.ethereum) return;
-    setConnecting(true);
-    setError(null);
-    try {
-      const accounts = (await window.ethereum.request({ method: "eth_requestAccounts" })) as string[];
-      const addr = accounts?.[0];
-      if (addr && isAddress(addr)) {
-        setConnectedAddress(addr as `0x${string}`);
-        onChange({ address: addr as `0x${string}`, isRealWallet: true });
-      } else {
-        setError("No account returned by wallet.");
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Connection rejected.");
-    } finally {
-      setConnecting(false);
+    if (pastedAddress) {
+      onChange({ address: pastedAddress, isRealWallet: false });
+    } else if (isConnected && connectedAddress) {
+      onChange({ address: connectedAddress, isRealWallet: true });
+    } else {
+      onChange({ address: null, isRealWallet: false });
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pastedAddress, isConnected, connectedAddress]);
 
-  function disconnect() {
-    setConnectedAddress(null);
-    onChange({ address: null, isRealWallet: false });
+  function disconnectWallet() {
+    disconnect();
+    setPastedAddress(null);
   }
 
   function usePasted() {
-    setError(null);
+    setPasteError(null);
     if (!isAddress(pasted)) {
-      setError("Not a valid address.");
+      setPasteError("Not a valid address.");
       return;
     }
-    onChange({ address: pasted as `0x${string}`, isRealWallet: false });
+    setPastedAddress(pasted as `0x${string}`);
   }
 
-  if (connectedAddress) {
+  if (isConnected && connectedAddress && !pastedAddress) {
     return (
       <div className="wallet-bar connected">
         <span className="wallet-dot" />
@@ -74,7 +58,7 @@ export function WalletConnect({
           {connectedAddress.slice(0, 6)}…{connectedAddress.slice(-4)}
         </span>
         <span className="wallet-tag">connected wallet</span>
-        <button className="btn btn-sm" onClick={disconnect}>
+        <button className="btn btn-sm" onClick={disconnectWallet}>
           Disconnect
         </button>
       </div>
@@ -83,10 +67,19 @@ export function WalletConnect({
 
   return (
     <div className="wallet-bar">
-      {hasInjected ? (
-        <button className="btn btn-primary btn-sm" onClick={connect} disabled={connecting}>
-          {connecting ? "Connecting…" : "Connect wallet"}
-        </button>
+      {connectors.length > 0 ? (
+        <div className="wallet-connectors">
+          {connectors.map((c) => (
+            <button
+              key={c.uid}
+              className="btn btn-primary btn-sm"
+              onClick={() => connect({ connector: c })}
+              disabled={connecting}
+            >
+              {connecting ? "Connecting…" : `Connect ${c.name}`}
+            </button>
+          ))}
+        </div>
       ) : (
         <span className="blurb">No injected wallet detected.</span>
       )}
@@ -101,7 +94,9 @@ export function WalletConnect({
       <button className="btn btn-sm" onClick={usePasted}>
         Use address
       </button>
-      {error && <span className="wallet-error">{error}</span>}
+      {(pasteError || connectError) && (
+        <span className="wallet-error">{pasteError ?? connectError?.message}</span>
+      )}
     </div>
   );
 }
