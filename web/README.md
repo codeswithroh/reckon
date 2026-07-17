@@ -20,6 +20,22 @@ console, not a product. Nobody's real workflow starts with pasting hex. The rede
 something anyone can use with zero technical input (their own wallet's real history) and reframes
 the interactive demo around simulated real actions instead of a hex form.
 
+### Plain-English narration
+
+Even after that first redesign, the verdict panel still led with a badge and key-value stats, raw
+output, not a product. To fix it, I queried my own database of ~7,500 past accepted hackathon
+ideas for prior winners in the same space (wallet security, transaction pre-flight, approval
+scanning) and deep-dove the four closest matches: FireMask, Safenode, Prank Wallet, and Metaguard.
+The one pattern all four share: translate the raw verdict into a real sentence describing what
+actually happens if you sign, shown *before* the technical numbers, not instead of them.
+`app/lib/narrate.ts` implements that directly — `narrateVerdict()` and `narrateRiskFlag()` turn a
+`PreflightResult`/`RiskFlagView` into sentences like "This gives 0x0000…dEaD permission to take an
+unlimited amount of this token from you, at any time, forever, until you revoke it." The badge and
+raw `kind`/`severity` fields still render underneath, for anyone who wants them. Action cards also
+dropped emoji for the site's existing icon set, with copy that names the actual scenario ("Claim"
+button on a lookalike site, Ordinary contract read, Call to a broken function) instead of a playful
+label.
+
 ## Live, not static
 
 Every pre-flight call runs `@codeswithroh/reckon-core`'s `preflight()` **directly in the browser** against live
