@@ -19,7 +19,7 @@ beforeAll(async () => {
   }
 });
 
-describe("@reckon/sdk (live)", () => {
+describe("@codeswithroh/reckon-sdk (live)", () => {
   it("is wired to Monad testnet", () => {
     expect(reachable).toBe(true);
   });

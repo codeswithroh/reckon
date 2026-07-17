@@ -6,7 +6,7 @@ import {
   type Hex,
   type PublicClient,
 } from "viem";
-import { monadTestnet, preflight, ReckonRefusedError, type PreflightVerdict } from "@reckon/core";
+import { monadTestnet, preflight, ReckonRefusedError, type PreflightVerdict } from "@codeswithroh/reckon-core";
 
 /** Minimal EIP-1193 provider shape (what wallets and injected `window.ethereum` expose). */
 export interface Eip1193Provider {

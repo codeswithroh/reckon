@@ -38,7 +38,7 @@ export function IntegrateTabs() {
           <div className="code">
             <div>
               <span className="k">import</span> {"{ createReckonClient }"} <span className="k">from</span>{" "}
-              <span className="s">&quot;@reckon/sdk&quot;</span>;
+              <span className="s">&quot;@codeswithroh/reckon-sdk&quot;</span>;
             </div>
             <div>&nbsp;</div>
             <div>
@@ -115,7 +115,7 @@ export function IntegrateTabs() {
             </div>
             <div>
               <span className="k">import</span> {"{ createGuardedProvider }"}{" "}
-              <span className="k">from</span> <span className="s">&quot;@reckon/sdk&quot;</span>;
+              <span className="k">from</span> <span className="s">&quot;@codeswithroh/reckon-sdk&quot;</span>;
             </div>
             <div>&nbsp;</div>
             <div>

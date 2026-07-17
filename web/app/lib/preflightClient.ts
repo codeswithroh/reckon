@@ -1,5 +1,5 @@
 import { createPublicClient, http, isAddress, type Address, type Hex } from "viem";
-import { monadTestnet, preflight, type ReckonTxRequest } from "@reckon/core";
+import { monadTestnet, preflight, type ReckonTxRequest } from "@codeswithroh/reckon-core";
 
 /**
  * Client-side pre-flight — runs directly in the browser against Monad testnet (the RPC allows

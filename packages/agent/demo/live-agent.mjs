@@ -20,7 +20,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { writeFileSync } from "node:fs";
-import { monadTestnet, preflight } from "@reckon/core";
+import { monadTestnet, preflight } from "@codeswithroh/reckon-core";
 
 const PYTH = getAddress("0x2880aB155794e7179c9eE2e38200202908C17B43");
 const MULTICALL3 = getAddress("0xcA11bde05977b3631167028862bE2a173976CA11");

@@ -1,7 +1,7 @@
 {
-  "name": "@reckon/sdk",
+  "name": "@codeswithroh/reckon-sdk",
   "version": "0.0.1",
-  "description": "Drop-in Reckon SDK for Monad: pre-flight and safe-send transactions, or route batches through the on-chain GuardedExecutor.",
+  "description": "Drop-in Reckon SDK for Monad: pre-flight and safe-send transactions, guard an EIP-1193 wallet provider, or route batches through the on-chain GuardedExecutor.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,13 +12,35 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": ["dist", "README.md"],
+  "keywords": [
+    "monad",
+    "evm",
+    "gas",
+    "transaction-simulation",
+    "preflight",
+    "wallet-guard",
+    "eip-1193",
+    "web3",
+    "viem",
+    "blockchain-security"
+  ],
+  "homepage": "https://reckon-monad-seatbelt.netlify.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codeswithroh/reckon.git",
+    "directory": "packages/sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/codeswithroh/reckon/issues"
+  },
+  "author": "codeswithroh",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run"
   },
   "dependencies": {
-    "@reckon/core": "*"
+    "@codeswithroh/reckon-core": "^0.0.1"
   },
   "peerDependencies": {
     "viem": "^2.21.0"

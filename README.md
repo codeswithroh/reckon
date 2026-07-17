@@ -6,6 +6,9 @@
 **Repo → [github.com/codeswithroh/reckon](https://github.com/codeswithroh/reckon)** ·
 **Contract → [`0x84e5…B6AE`](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE)**
 
+**npm → [`@codeswithroh/reckon-sdk`](https://www.npmjs.com/package/@codeswithroh/reckon-sdk) ·
+[`@codeswithroh/reckon-core`](https://www.npmjs.com/package/@codeswithroh/reckon-core)**
+
 > On Monad you pay for the gas limit you declare — **not the gas you use, and even when your
 > transaction reverts.** Reckon pre-flights every transaction: it simulates it, refuses to
 > broadcast doomed ones, and sets the tightest *correct* gas limit — so you never pay for a

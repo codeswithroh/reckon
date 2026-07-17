@@ -19,7 +19,7 @@ import {
   type PreflightVerdict,
   type ReckonTxRequest,
   type SafeSendResult,
-} from "@reckon/core";
+} from "@codeswithroh/reckon-core";
 import { guardedExecutorAbi, GUARDED_EXECUTOR_TESTNET } from "./abi.js";
 
 export interface ReckonClientConfig {

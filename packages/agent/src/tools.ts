@@ -1,5 +1,5 @@
 import { createPublicClient, http, type Address, type Hex, type PublicClient } from "viem";
-import { monadTestnet, preflight, type ReckonTxRequest, type RiskFlag } from "@reckon/core";
+import { monadTestnet, preflight, type ReckonTxRequest, type RiskFlag } from "@codeswithroh/reckon-core";
 
 export interface PreflightInput {
   from: Address;
@@ -29,7 +29,7 @@ export interface PreflightSummary {
   savingsVsNaiveMON?: string;
   notes: string[];
   /**
-   * Approval/permission-escalation risk flags (see @reckon/core's riskDetection). Agents are the
+   * Approval/permission-escalation risk flags (see @codeswithroh/reckon-core's riskDetection). Agents are the
    * exact population the May 2026 ~$175K incident targeted: an approval that doesn't revert and
    * moves no value, but grants a standing right for someone else to move it later. `hasCriticalRisk`
    * is surfaced separately so callers don't have to re-scan `riskFlags` themselves.

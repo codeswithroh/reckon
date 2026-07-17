@@ -15,7 +15,7 @@ product app with three flows. Deployed at
 
 ## Live, not static
 
-Every pre-flight call runs `@reckon/core`'s `preflight()` **directly in the browser** against live
+Every pre-flight call runs `@codeswithroh/reckon-core`'s `preflight()` **directly in the browser** against live
 Monad testnet (the RPC allows CORS, so no backend is needed — the whole site is a static export).
 Nothing is mocked. The proof pages show real balance deltas with real explorer links
 (`app/lib/demo-results.json`, produced by `packages/agent/demo/live-agent.mjs`).

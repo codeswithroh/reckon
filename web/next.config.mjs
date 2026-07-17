@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   output: "export",
   trailingSlash: true,
-  transpilePackages: ["@reckon/core"],
+  transpilePackages: ["@codeswithroh/reckon-core"],
   images: { unoptimized: true },
 };
 

@@ -1,7 +1,7 @@
 {
-  "name": "@reckon/core",
+  "name": "@codeswithroh/reckon-core",
   "version": "0.0.1",
-  "description": "Reckon pre-flight engine: simulate a Monad transaction, detect reverts, and compute the tightest correct gas limit and true cost.",
+  "description": "Reckon pre-flight engine: simulate a Monad transaction, detect reverts, flag approval/permission risk, and compute the tightest correct gas limit and true cost.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -13,8 +13,29 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
+  "keywords": [
+    "monad",
+    "evm",
+    "gas",
+    "transaction-simulation",
+    "preflight",
+    "web3",
+    "viem",
+    "blockchain-security"
+  ],
+  "homepage": "https://reckon-monad-seatbelt.netlify.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codeswithroh/reckon.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/codeswithroh/reckon/issues"
+  },
+  "author": "codeswithroh",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",

@@ -3,7 +3,7 @@ import { defineChain } from "viem";
 /**
  * Monad testnet (chainId 10143).
  *
- * Defined locally rather than imported so `@reckon/core` has no hard dependency on a
+ * Defined locally rather than imported so `@codeswithroh/reckon-core` has no hard dependency on a
  * particular viem version's chain list. RPC + explorer verified live during Phase 0.
  */
 export const monadTestnet = defineChain({

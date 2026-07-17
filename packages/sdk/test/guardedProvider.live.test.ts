@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { createPublicClient, http, encodeFunctionData, getAddress } from "viem";
 import { createGuardedProvider, ReckonRefusedError, type Eip1193Provider } from "../src/index.js";
-import { monadTestnet } from "@reckon/core";
+import { monadTestnet } from "@codeswithroh/reckon-core";
 
 /**
  * LIVE: the EIP-1193 guarded provider against Monad testnet. A mock inner provider records every

@@ -17,7 +17,7 @@ export {
   fetchHistoricalGasUsage,
   computeAdaptiveBuffer,
   recommendAdaptiveGasLimit,
-} from "@reckon/core";
+} from "@codeswithroh/reckon-core";
 export type {
   ReckonTxRequest,
   PreflightOptions,
@@ -28,4 +28,4 @@ export type {
   HistoricalGasScanOptions,
   AdaptiveBufferResult,
   AdaptiveGasLimitResult,
-} from "@reckon/core";
+} from "@codeswithroh/reckon-core";
