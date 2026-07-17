@@ -3,31 +3,33 @@ import { useState } from "react";
 import { createGuardedProvider, ReckonRefusedError, type Eip1193Provider } from "@codeswithroh/reckon-sdk";
 import { PRESETS, type Preset } from "../lib/presets";
 import { runPreflight, type PreflightResult } from "../lib/preflightClient";
+import { narrateVerdict, narrateRiskFlag } from "../lib/narrate";
+import { Icon, type IconName } from "./Icon";
 import type { WalletState } from "./WalletConnect";
 
 const ACTIONS: Array<{
   presetId: string;
-  emoji: string;
+  icon: IconName;
   title: string;
   tagline: string;
 }> = [
   {
     presetId: "unlimited-approve",
-    emoji: "🎁",
-    title: "Claim free airdrop",
-    tagline: "A typical \"claim\" button. Secretly asks for unlimited token approval.",
+    icon: "alert-triangle",
+    title: "“Claim” button on a lookalike site",
+    tagline: "The most common drain vector: an innocuous claim button that actually requests unlimited token approval.",
   },
   {
     presetId: "healthy-read",
-    emoji: "🔄",
-    title: "Swap on demo exchange",
-    tagline: "A normal, well-formed contract call.",
+    icon: "check-circle-2",
+    title: "Ordinary contract read",
+    tagline: "A normal, well-formed call. What most of your transactions should look like.",
   },
   {
     presetId: "pyth-bogus",
-    emoji: "💥",
-    title: "Call broken contract",
-    tagline: "Hits a function that doesn't exist. Would revert.",
+    icon: "x-circle",
+    title: "Call to a broken function",
+    tagline: "Would fail on-chain and, on Monad, still charge the full declared gas limit.",
   },
 ];
 
@@ -114,8 +116,8 @@ export function GuardedActions({ wallet }: { wallet: WalletState }) {
       <div className="widget-grid">
         <div className="panel left">
           <p className="blurb" style={{ marginBottom: 14 }}>
-            Pretend you&apos;re using a real dApp. Click an action and see Reckon&apos;s verdict,
-            live, against Monad testnet.
+            Three realistic scenarios. Pick one and Reckon evaluates it live, against Monad
+            testnet, before anything is signed.
           </p>
           <div className="action-cards">
             {ACTIONS.map((a) => (
@@ -125,7 +127,9 @@ export function GuardedActions({ wallet }: { wallet: WalletState }) {
                 onClick={() => runAction(a.presetId)}
                 disabled={loading}
               >
-                <span className="action-emoji">{a.emoji}</span>
+                <span className={`action-icon ${a.icon}`}>
+                  <Icon name={a.icon} size={18} />
+                </span>
                 <span className="action-title">{a.title}</span>
                 <span className="action-tagline">{a.tagline}</span>
               </button>
@@ -224,6 +228,7 @@ export function GuardedActions({ wallet }: { wallet: WalletState }) {
                       : "● OK: safe to send";
                 return (
                   <>
+                    <p className={`narrative ${badgeClass}`}>{narrateVerdict(verdict)}</p>
                     <div className={`badge ${badgeClass}`}>{badgeText}</div>
 
                     {verdict.riskFlags.length > 0 && (
@@ -231,7 +236,10 @@ export function GuardedActions({ wallet }: { wallet: WalletState }) {
                         {verdict.riskFlags.map((f, i) => (
                           <div key={i} className={`risk-flag ${f.severity}`}>
                             <span className="risk-flag-sev">{f.severity.toUpperCase()}</span>
-                            <span className="risk-flag-msg">{f.message}</span>
+                            <span>
+                              <span className="risk-flag-msg">{narrateRiskFlag(f)}</span>
+                              <span className="risk-flag-technical">{f.message}</span>
+                            </span>
                           </div>
                         ))}
                       </div>

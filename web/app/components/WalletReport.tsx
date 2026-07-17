@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { createPublicClient, http, formatEther, type Address } from "viem";
 import { monadTestnet } from "@codeswithroh/reckon-core";
 import { scanWalletActivity, type WalletScanResult } from "../lib/walletScan";
+import { narrateRiskFlag } from "../lib/narrate";
 
 const client = createPublicClient({ chain: monadTestnet, transport: http() });
 const EXPLORER = "https://testnet.monadexplorer.com";
@@ -11,6 +12,38 @@ const trimMon = (wei: bigint) => {
   const n = Number(formatEther(wei));
   return n === 0 ? "0" : n < 0.0001 && n > 0 ? "<0.0001" : n.toPrecision(3).replace(/\.?0+$/, "");
 };
+
+function reportHeadline(result: WalletScanResult): { text: string; tone: "ok" | "warn" | "block" } {
+  const hasCritical = result.riskyTxs.some((t) => t.flags.some((f) => f.severity === "critical"));
+  if (hasCritical) {
+    return {
+      text: `This wallet has ${result.riskyTxs.length} outstanding approval${result.riskyTxs.length === 1 ? "" : "s"} that let another address move its tokens. If you don't recognize the spender below, revoke it.`,
+      tone: "block",
+    };
+  }
+  if (result.revertCount > 0) {
+    return {
+      text: `${result.revertCount} recent transaction${result.revertCount === 1 ? "" : "s"} failed and still charged the full declared gas limit, burning ${trimMon(result.totalBurnedWei)} MON for nothing. That's how Monad's gas model works: reverts don't refund.`,
+      tone: "block",
+    };
+  }
+  if (result.riskyTxs.length > 0) {
+    return {
+      text: `${result.riskyTxs.length} approval${result.riskyTxs.length === 1 ? "" : "s"} found in this window. Nothing critical, but worth a glance below.`,
+      tone: "warn",
+    };
+  }
+  if (result.txCount === 0) {
+    return {
+      text: "No transactions found for this address in the scanned window. Either it's new, or its activity is further back than this scan reaches.",
+      tone: "ok",
+    };
+  }
+  return {
+    text: `Clean record: ${result.txCount} transaction${result.txCount === 1 ? "" : "s"} found, none reverted, no risky approvals granted.`,
+    tone: "ok",
+  };
+}
 
 export function WalletReport({ address }: { address: Address | null }) {
   const [result, setResult] = useState<WalletScanResult | null>(null);
@@ -66,10 +99,12 @@ export function WalletReport({ address }: { address: Address | null }) {
 
   if (!result) return null;
 
-  const clean = result.revertCount === 0 && result.riskyTxs.length === 0;
+  const headline = reportHeadline(result);
 
   return (
     <div>
+      <p className={`narrative ${headline.tone}`}>{headline.text}</p>
+
       <div className="report-stats">
         <div className="report-stat">
           <div className="num">{result.txCount}</div>
@@ -92,13 +127,6 @@ export function WalletReport({ address }: { address: Address | null }) {
           <div className="lbl">approvals granted in this window</div>
         </div>
       </div>
-
-      {clean && (
-        <p className="report-clean">
-          ✓ Clean record in the scanned window: no reverted transactions, no approval-granting
-          calls found.
-        </p>
-      )}
 
       {result.revertedTxs.length > 0 && (
         <div className="report-section">
@@ -125,7 +153,10 @@ export function WalletReport({ address }: { address: Address | null }) {
               {t.flags.map((f, i) => (
                 <div key={i} className={`risk-flag ${f.severity}`}>
                   <span className="risk-flag-sev">{f.severity.toUpperCase()}</span>
-                  <span className="risk-flag-msg">{f.message}</span>
+                  <span>
+                    <span className="risk-flag-msg">{narrateRiskFlag(f)}</span>
+                    <span className="risk-flag-technical">{f.message}</span>
+                  </span>
                 </div>
               ))}
             </div>

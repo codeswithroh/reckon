@@ -404,6 +404,36 @@ h2 {
 }
 .risk-flag-msg {
   color: var(--text);
+  display: block;
+  line-height: 1.5;
+}
+.risk-flag-technical {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ---- plain-English narrative, shown before the technical verdict ---- */
+.narrative {
+  font-size: 14.5px;
+  line-height: 1.6;
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin: 0 0 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.narrative.ok {
+  border-color: rgba(63, 185, 80, 0.3);
+  color: var(--text);
+}
+.narrative.warn {
+  border-color: rgba(227, 179, 65, 0.3);
+}
+.narrative.block {
+  border-color: rgba(248, 81, 73, 0.3);
 }
 .risk-flag.critical {
   border-color: rgba(248, 81, 73, 0.35);
@@ -1033,11 +1063,33 @@ footer {
   border-color: var(--accent);
   background: rgba(131, 110, 249, 0.08);
 }
-.action-emoji {
-  font-size: 22px;
-  line-height: 1;
+.action-icon {
   grid-row: 1 / 3;
   align-self: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+.action-icon.alert-triangle {
+  color: var(--block);
+  border-color: rgba(248, 81, 73, 0.3);
+  background: rgba(248, 81, 73, 0.08);
+}
+.action-icon.check-circle-2 {
+  color: var(--ok);
+  border-color: rgba(63, 185, 80, 0.3);
+  background: rgba(63, 185, 80, 0.08);
+}
+.action-icon.x-circle {
+  color: var(--warn);
+  border-color: rgba(227, 179, 65, 0.3);
+  background: rgba(227, 179, 65, 0.08);
 }
 .action-title {
   font-weight: 600;
