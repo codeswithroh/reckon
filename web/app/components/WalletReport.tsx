@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import { createPublicClient, http, formatEther, type Address } from "viem";
-import { monadTestnet } from "@codeswithroh/reckon-core";
-import { scanWalletActivity, type WalletScanResult } from "../lib/walletScan";
+import { createPublicClient, http, formatEther, encodeFunctionData, type Address, type Hex } from "viem";
+import { monadTestnet, type RiskFlag } from "@codeswithroh/reckon-core";
+import { scanWalletActivity, type WalletScanResult, type RiskyTx } from "../lib/walletScan";
 import { narrateRiskFlag } from "../lib/narrate";
+import type { WalletState } from "./WalletConnect";
 
 const client = createPublicClient({ chain: monadTestnet, transport: http() });
 const EXPLORER = "https://testnet.monadexplorer.com";
@@ -12,6 +13,110 @@ const trimMon = (wei: bigint) => {
   const n = Number(formatEther(wei));
   return n === 0 ? "0" : n < 0.0001 && n > 0 ? "<0.0001" : n.toPrecision(3).replace(/\.?0+$/, "");
 };
+
+const ERC20_APPROVE_ABI = [
+  {
+    type: "function",
+    name: "approve",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+  },
+] as const;
+
+const NFT_SET_APPROVAL_ABI = [
+  {
+    type: "function",
+    name: "setApprovalForAll",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "operator", type: "address" },
+      { name: "approved", type: "bool" },
+    ],
+    outputs: [],
+  },
+] as const;
+
+/**
+ * A `permit()` signature and an `approve()` call both land in the same ERC-20 allowance mapping,
+ * so revoking either one is the same on-chain action: `approve(spender, 0)`, sent by the owner.
+ */
+function buildRevokeTx(flag: RiskFlag, token: Address): { to: Address; data: Hex } | null {
+  const d = flag.details ?? {};
+  switch (flag.kind) {
+    case "erc20_approve":
+    case "erc20_increase_allowance":
+    case "eip2612_permit": {
+      const spender = d.spender;
+      if (typeof spender !== "string") return null;
+      return {
+        to: token,
+        data: encodeFunctionData({ abi: ERC20_APPROVE_ABI, functionName: "approve", args: [spender as Address, 0n] }),
+      };
+    }
+    case "nft_set_approval_for_all": {
+      const operator = d.operator;
+      if (typeof operator !== "string") return null;
+      return {
+        to: token,
+        data: encodeFunctionData({
+          abi: NFT_SET_APPROVAL_ABI,
+          functionName: "setApprovalForAll",
+          args: [operator as Address, false],
+        }),
+      };
+    }
+    default:
+      return null;
+  }
+}
+
+type WindowWithEthereum = Window & {
+  ethereum?: { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> };
+};
+
+type RevokeState = { kind: "idle" } | { kind: "pending" } | { kind: "done"; hash: string } | { kind: "error"; message: string };
+
+function RevokeButton({ flag, tx, from }: { flag: RiskFlag; tx: RiskyTx; from: Address }) {
+  const [state, setState] = useState<RevokeState>({ kind: "idle" });
+  const revokeTx = tx.to ? buildRevokeTx(flag, tx.to) : null;
+  if (!revokeTx) return null;
+
+  async function revoke() {
+    const eth = (window as unknown as WindowWithEthereum).ethereum;
+    if (!eth || !revokeTx) return;
+    setState({ kind: "pending" });
+    try {
+      const hash = (await eth.request({
+        method: "eth_sendTransaction",
+        params: [{ from, to: revokeTx.to, data: revokeTx.data }],
+      })) as string;
+      setState({ kind: "done", hash });
+    } catch (e) {
+      setState({ kind: "error", message: e instanceof Error ? e.message : "Revoke failed." });
+    }
+  }
+
+  if (state.kind === "done") {
+    return (
+      <a className="revoke-btn done" href={`${EXPLORER}/tx/${state.hash}`}>
+        ✓ Revoked — view tx ↗
+      </a>
+    );
+  }
+
+  return (
+    <div className="revoke-wrap">
+      <button className="revoke-btn" onClick={revoke} disabled={state.kind === "pending"}>
+        {state.kind === "pending" ? "Revoking…" : "Revoke this permission"}
+      </button>
+      {state.kind === "error" && <span className="revoke-error">{state.message}</span>}
+    </div>
+  );
+}
 
 function reportHeadline(result: WalletScanResult): { text: string; tone: "ok" | "warn" | "block" } {
   const hasCritical = result.riskyTxs.some((t) => t.flags.some((f) => f.severity === "critical"));
@@ -45,7 +150,9 @@ function reportHeadline(result: WalletScanResult): { text: string; tone: "ok" | 
   };
 }
 
-export function WalletReport({ address }: { address: Address | null }) {
+export function WalletReport({ wallet }: { wallet: WalletState }) {
+  const address = wallet.address;
+  const canRevoke = wallet.isRealWallet;
   const [result, setResult] = useState<WalletScanResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -157,6 +264,9 @@ export function WalletReport({ address }: { address: Address | null }) {
                     <span className="risk-flag-msg">{narrateRiskFlag(f)}</span>
                     <span className="risk-flag-technical">{f.message}</span>
                   </span>
+                  {canRevoke && address && (
+                    <RevokeButton flag={f} tx={t} from={address} />
+                  )}
                 </div>
               ))}
             </div>

@@ -41,3 +41,6 @@ yarn-error.log*
 research/gas-model/node_modules/
 
 web/out/
+
+# netlify
+.netlify/

@@ -18,7 +18,7 @@ export default function IntegratePage() {
       <div className="app-shell-banner">
         <h1>Integrate Reckon</h1>
         <p>
-          Three surfaces, one pre-flight engine underneath. Pick the one that matches where your
+          Four surfaces, one pre-flight engine underneath. Pick the one that matches where your
           transactions come from.
         </p>
       </div>

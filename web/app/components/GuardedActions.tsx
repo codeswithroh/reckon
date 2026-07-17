@@ -1,11 +1,9 @@
 "use client";
 import { useState } from "react";
-import { createGuardedProvider, ReckonRefusedError, type Eip1193Provider } from "@codeswithroh/reckon-sdk";
 import { PRESETS, type Preset } from "../lib/presets";
 import { runPreflight, type PreflightResult } from "../lib/preflightClient";
 import { narrateVerdict, narrateRiskFlag } from "../lib/narrate";
 import { Icon, type IconName } from "./Icon";
-import type { WalletState } from "./WalletConnect";
 
 const ACTIONS: Array<{
   presetId: string;
@@ -39,29 +37,18 @@ const trimMon = (v: string | null) => {
   return n === 0 ? "0" : n.toPrecision(4).replace(/\.?0+$/, "");
 };
 
-type WalletTryState =
-  | { kind: "idle" }
-  | { kind: "checking" }
-  | { kind: "blocked"; reason: string }
-  | { kind: "allowed" };
-
-export function GuardedActions({ wallet }: { wallet: WalletState }) {
+export function GuardedActions() {
   const [activeId, setActiveId] = useState<string>(ACTIONS[0]!.presetId);
   const [verdict, setVerdict] = useState<PreflightResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [walletTry, setWalletTry] = useState<WalletTryState>({ kind: "idle" });
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [advTx, setAdvTx] = useState<Preset["tx"]>(PRESETS[0]!.tx);
-
-  const active = ACTIONS.find((a) => a.presetId === activeId)!;
-  const activePreset = PRESETS.find((p) => p.id === activeId)!;
 
   async function runAction(presetId: string) {
     setActiveId(presetId);
     setVerdict(null);
     setError(null);
-    setWalletTry({ kind: "idle" });
     setLoading(true);
     const preset = PRESETS.find((p) => p.id === presetId)!;
     try {
@@ -71,29 +58,6 @@ export function GuardedActions({ wallet }: { wallet: WalletState }) {
       setError(e instanceof Error ? e.message : "failed");
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function tryOnRealWallet() {
-    if (!wallet.address || !wallet.isRealWallet || typeof window === "undefined") return;
-    const ethereum = (window as unknown as { ethereum?: Eip1193Provider }).ethereum;
-    if (!ethereum) return;
-
-    setWalletTry({ kind: "checking" });
-    const guarded = createGuardedProvider(ethereum);
-    try {
-      await guarded.request({
-        method: "eth_sendTransaction",
-        params: [{ from: wallet.address, to: activePreset.tx.to, data: activePreset.tx.data }],
-      });
-      // Reckon allowed it through: the real wallet has now been asked to sign.
-      setWalletTry({ kind: "allowed" });
-    } catch (e) {
-      if (e instanceof ReckonRefusedError) {
-        setWalletTry({ kind: "blocked", reason: e.message });
-      } else {
-        setWalletTry({ kind: "idle" });
-      }
     }
   }
 
@@ -116,8 +80,8 @@ export function GuardedActions({ wallet }: { wallet: WalletState }) {
       <div className="widget-grid">
         <div className="panel left">
           <p className="blurb" style={{ marginBottom: 14 }}>
-            Three realistic scenarios. Pick one and Reckon evaluates it live, against Monad
-            testnet, before anything is signed.
+            No wallet installed, or just want to see it work without touching yours? Pick one of
+            three realistic scenarios and Reckon evaluates it live, against Monad testnet.
           </p>
           <div className="action-cards">
             {ACTIONS.map((a) => (
@@ -135,28 +99,6 @@ export function GuardedActions({ wallet }: { wallet: WalletState }) {
               </button>
             ))}
           </div>
-
-          {wallet.address && wallet.isRealWallet && verdict && (
-            <div className="wallet-try">
-              <button className="btn" onClick={tryOnRealWallet} disabled={walletTry.kind === "checking"}>
-                {walletTry.kind === "checking"
-                  ? "Checking against your wallet…"
-                  : "Try this on your connected wallet →"}
-              </button>
-              {walletTry.kind === "blocked" && (
-                <p className="wallet-try-result blocked">
-                  🛑 Reckon blocked this before your wallet was ever asked to sign. Your wallet
-                  popup never opened.
-                </p>
-              )}
-              {walletTry.kind === "allowed" && (
-                <p className="wallet-try-result allowed">
-                  ✓ Reckon approved this and forwarded it to your wallet. Check your wallet, if a
-                  prompt appeared, you can safely reject it, this is just a demo.
-                </p>
-              )}
-            </div>
-          )}
 
           <button
             className="advanced-toggle"

@@ -9,9 +9,9 @@ product app with three flows. Deployed at
 | Route | Purpose |
 |---|---|
 | `/` | Landing page: hero, the problem (gas_used vs gas_limit diagram + incident stats), how it works (3 surface cards), proof summary. No embedded tool — pure marketing. |
-| `/app` | The dashboard, in two parts: **Check your wallet** (connect or paste an address, get a real safety report: reverted txs, MON burned, outstanding risky approvals, scanned live) and **Try it live** (button-driven simulated dApp actions, "Claim free airdrop" / "Swap" / "Call broken contract", with a wallet-aware guard demo when a real wallet is connected). Raw calldata testing still exists, tucked under an "Advanced" toggle. |
+| `/app` | The dashboard, in four parts: **Connect your wallet**, **Live guard** (the real thing — see below), **Your wallet's real history** (a live scan with one-click revoke on risky approvals), and **No wallet? See it work instantly** (the old button-driven scenario demo, now a fallback, not the headline). |
 | `/app/proof` | Full on-chain evidence: naive-vs-guarded bar chart + transaction-by-transaction table with real explorer links. |
-| `/app/integrate` | Tabbed integration docs: SDK, MCP agent guard, wallet guard code snippets. |
+| `/app/integrate` | Tabbed integration docs: SDK, MCP agent guard, wallet guard, and a composable-signal snippet. |
 
 ### Why the dashboard changed
 
@@ -35,6 +35,50 @@ raw `kind`/`severity` fields still render underneath, for anyone who wants them.
 dropped emoji for the site's existing icon set, with copy that names the actual scenario ("Claim"
 button on a lookalike site, Ordinary contract read, Call to a broken function) instead of a playful
 label.
+
+### The real flow: ambient guard, not a sandbox
+
+Even with narration, the dashboard was still fundamentally a sandbox: pick a canned scenario,
+watch a verdict render. That's not what the winning analogs in the same research pass actually
+did. Deep-diving their showcase pages (not just taglines) found the real mechanism behind the
+highest-prized ones:
+
+- **Safenode** (8 prizes) — users add it as their actual wallet RPC. Every real transaction they
+  ever send routes through it; unknown addresses get queued for approval *before* the mempool, not
+  after.
+- **Onay** and **Revoke.Delegate** — don't just warn, they pre-delegate a narrow permission so
+  approvals can be revoked proactively, without the user needing to notice the risk first.
+- **Tanuki** — turns the output into a composable primitive (`IScoreProvider.viewScore(address)`)
+  other contracts call directly, not a page a human reads.
+
+Reckon already had the right primitive (`createGuardedProvider`, an EIP-1193 wrapper), it was just
+buried as a secondary button after picking a demo scenario. `GuardConsole.tsx` inverts that: click
+**Enable Reckon Guard** and it swaps `window.ethereum` for the guarded version for the rest of the
+browser tab, so *any* Monad testnet dApp you then use gets every `eth_sendTransaction` pre-flighted
+before the wallet ever prompts. A live feed narrates each intercepted call as BLOCKED (would
+revert), FLAGGED (succeeds but grants a risky standing permission, forwarded to the wallet anyway,
+`createGuardedProvider`'s `mode: "block"` only hard-stops reverts by design, an `approve()` can be
+entirely intentional), or ALLOWED.
+
+`WalletReport.tsx` got the Onay/Revoke.Delegate-style follow-through too: each risky approval it
+finds now has a **Revoke this permission** button (real `approve(spender, 0)` /
+`setApprovalForAll(operator, false)`, sent through the connected wallet), shown only when the
+connected wallet matches the scanned address. The report changed from something you read to
+something you can act on.
+
+`/app/integrate` picked up a fourth tab, **Composable signal**, making the Tanuki-style pitch
+explicit: `detectRiskFlags()` is a pure function, no RPC, safe to call from a relayer, an agent's
+own tool-call guard, or another wallet's pre-sign hook, not just this page.
+
+**Verified**: the exact mechanism `GuardConsole` depends on (`createGuardedProvider`'s `onVerdict`
+classification into revert/critical-risk/clean) was checked directly against a mocked EIP-1193
+provider using the real built SDK package (not the source, the actual `packages/sdk/dist` output),
+confirming BLOCK only fires on revert and risky-but-successful calls are FLAGGED and forwarded, not
+blocked, exactly what the UI now shows. **Known gap**: the click-through with a real wallet
+extension enabling the guard from the dashboard UI itself is untested here, for the same reason
+noted below (no wallet extension in this environment, and injected mocks don't survive the
+detection flow) — the underlying wrap/restore logic is straightforward and code-reviewed, but worth
+a manual pass with a real extension before a live demo.
 
 ## Live, not static
 
@@ -73,14 +117,15 @@ approval-granting calls. **Verified live, twice, with real data**: an empty/clea
 after firing two fresh real testnet transactions (one revert, one unlimited approval) from a known
 wallet, a re-scan found exactly those two, correctly categorized.
 
-The "connect a real wallet" path (`WalletConnect.tsx`, and `GuardedActions.tsx`'s "try this on your
-connected wallet" button, which wraps `window.ethereum` with `createGuardedProvider`) could **not**
-be tested end-to-end in this project's automated browser: it has no wallet extension installed, and
-injected `window.ethereum` mocks don't survive navigation/reload (confirmed empirically, not
-assumed) — real wallet extensions inject at document-start via a content script, which this
-environment has no equivalent hook for. The underlying logic is the exact same `createGuardedProvider`
-already proven by 8/8 passing `@codeswithroh/reckon-sdk` tests (including "blocks a doomed
-`eth_sendTransaction` before it reaches the wallet"), and the dashboard's wiring code mirrors that
-test's pattern directly, but this specific click-through has only been verified by code review, not
-a live browser run with a real or mocked wallet present. Worth a manual check with a real wallet
-extension before relying on it for a demo.
+The "connect a real wallet" path (`WalletConnect.tsx`, and now `GuardConsole.tsx`'s "Enable Reckon
+Guard", which wraps `window.ethereum` with `createGuardedProvider`) could **not** be tested
+end-to-end in this project's automated browser: it has no wallet extension installed, and injected
+`window.ethereum` mocks don't survive navigation/reload (confirmed empirically, not assumed) — real
+wallet extensions inject at document-start via a content script, which this environment has no
+equivalent hook for. The underlying logic is the exact same `createGuardedProvider` already proven
+by 8/8 passing `@codeswithroh/reckon-sdk` tests (including "blocks a doomed `eth_sendTransaction`
+before it reaches the wallet"), independently re-verified above against the built SDK package with
+a mocked provider, and the dashboard's wiring code mirrors that pattern directly, but this specific
+click-through has only been verified by code review and the mocked-provider check, not a live
+browser run with a real wallet extension present. Worth a manual check before relying on it for a
+demo.

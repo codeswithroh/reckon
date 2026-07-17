@@ -2,12 +2,13 @@
 import { useState } from "react";
 import { Icon, type IconName } from "./Icon";
 
-type TabId = "sdk" | "mcp" | "wallet";
+type TabId = "sdk" | "mcp" | "wallet" | "composable";
 
 const TABS: Array<{ id: TabId; label: string; icon: IconName }> = [
   { id: "sdk", label: "SDK", icon: "terminal" },
   { id: "mcp", label: "MCP agent guard", icon: "bot" },
   { id: "wallet", label: "Wallet guard", icon: "wallet" },
+  { id: "composable", label: "Composable signal", icon: "link-2" },
 ];
 
 export function IntegrateTabs() {
@@ -128,6 +129,38 @@ export function IntegrateTabs() {
             <div>
               <span className="c">{"// the user never signs it, and never burns MON on a failure."}</span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {tab === "composable" && (
+        <div className="tab-panel">
+          <p className="sec-sub">
+            The risk detector is a pure function: no RPC call, no network round-trip, just
+            calldata in, a decoded verdict out. That means it isn&apos;t just a page you read, it&apos;s
+            a signal any other system can call directly, a relayer deciding whether to forward a
+            tx, an agent&apos;s own tool-call guard, a wallet&apos;s pre-sign hook, before it ever
+            reaches a human.
+          </p>
+          <div className="code">
+            <div>
+              <span className="k">import</span> {"{ detectRiskFlags }"} <span className="k">from</span>{" "}
+              <span className="s">&quot;@codeswithroh/reckon-core&quot;</span>;
+            </div>
+            <div>&nbsp;</div>
+            <div>
+              <span className="c">{"// zero RPC calls — safe to run in a hot path, an agent loop, or a relayer"}</span>
+            </div>
+            <div>
+              <span className="k">const</span> flags = <span className="f">detectRiskFlags</span>({"{ to, data, value }"});
+            </div>
+            <div>
+              <span className="k">if</span> (flags.some(f =&gt; f.severity === <span className="s">&quot;critical&quot;</span>)) {"{"}
+            </div>
+            <div>
+              &nbsp;&nbsp;<span className="c">{"// stop here — don't forward, don't co-sign, don't relay"}</span>
+            </div>
+            <div>{"}"}</div>
           </div>
         </div>
       )}
