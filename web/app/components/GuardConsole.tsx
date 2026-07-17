@@ -1,13 +1,39 @@
 "use client";
-import { useCallback, useRef, useState } from "react";
+import { useState } from "react";
 import { useConnection } from "wagmi";
 import {
   createGuardedProvider,
+  ReckonRefusedError,
   type Eip1193Provider,
   type PreflightVerdict,
 } from "@codeswithroh/reckon-sdk";
-import { narrateVerdict } from "../lib/narrate";
+import { PRESETS } from "../lib/presets";
+import { narrateVerdict, narrateRiskFlag } from "../lib/narrate";
 import type { PreflightResult, RiskFlagView } from "../lib/preflightClient";
+import { Icon, type IconName } from "./Icon";
+
+const EXPLORER = "https://testnet.monadexplorer.com";
+
+const ACTIONS: Array<{ presetId: string; icon: IconName; title: string; tagline: string }> = [
+  {
+    presetId: "unlimited-approve",
+    icon: "alert-triangle",
+    title: "“Claim” button on a lookalike site",
+    tagline: "Requests unlimited token approval. Reckon should stop this before your wallet ever opens.",
+  },
+  {
+    presetId: "healthy-read",
+    icon: "check-circle-2",
+    title: "Ordinary contract read",
+    tagline: "A normal, well-formed call. Reckon should let this through to your wallet with a tight gas limit.",
+  },
+  {
+    presetId: "pyth-bogus",
+    icon: "x-circle",
+    title: "Call to a broken function",
+    tagline: "Would revert on-chain. Reckon should refuse to send it before your wallet ever prompts.",
+  },
+];
 
 function jsonSafeDetails(details?: Record<string, unknown>): Record<string, unknown> | undefined {
   if (!details) return undefined;
@@ -34,162 +60,162 @@ function toResultView(v: PreflightVerdict): PreflightResult {
   };
 }
 
-interface GuardEvent {
-  id: number;
-  to?: string;
-  /**
-   * `createGuardedProvider`'s `mode: "block"` only throws (hard-stops) on a doomed tx that would
-   * revert. A critical-risk-but-succeeding call (e.g. an unlimited approve) is NOT thrown, by
-   * design, an approve() can be entirely intentional, so it's forwarded to the wallet with a
-   * flag instead. The feed must reflect that distinction honestly, not just show "blocked" for
-   * both.
-   */
-  outcome: "blocked" | "flagged" | "allowed";
-  narrative: string;
-}
-
-type WindowWithEthereum = Window & { ethereum?: Eip1193Provider };
+type SendState =
+  | { kind: "idle" }
+  | { kind: "sending" }
+  | { kind: "blocked"; view: PreflightResult }
+  | { kind: "forwarded"; view: PreflightResult; hash: string }
+  | { kind: "rejected"; view: PreflightResult | null; detail: string }
+  | { kind: "error"; message: string };
 
 export function GuardConsole() {
-  const { isConnected, connector } = useConnection();
-  const [active, setActive] = useState(false);
-  const [enabling, setEnabling] = useState(false);
-  const [enableError, setEnableError] = useState<string | null>(null);
-  const [events, setEvents] = useState<GuardEvent[]>([]);
-  const [checkedCount, setCheckedCount] = useState(0);
-  const [blockedCount, setBlockedCount] = useState(0);
-  const [flaggedCount, setFlaggedCount] = useState(0);
-  const [savedMON, setSavedMON] = useState(0);
-  const originalRef = useRef<Eip1193Provider | null>(null);
-  const idRef = useRef(0);
+  const { isConnected, connector, address } = useConnection();
+  const [activeId, setActiveId] = useState<string>(ACTIONS[0]!.presetId);
+  const [state, setState] = useState<SendState>({ kind: "idle" });
 
-  const enable = useCallback(async () => {
-    if (typeof window === "undefined" || !connector) return;
-    setEnableError(null);
-    setEnabling(true);
+  async function send(presetId: string) {
+    if (!connector || !address) return;
+    setActiveId(presetId);
+    setState({ kind: "sending" });
+    const preset = PRESETS.find((p) => p.id === presetId)!;
+    let verdict: PreflightVerdict | null = null;
     try {
-      // Ask wagmi for the *actual* provider behind the connected connector, rather than trusting
-      // a possibly-stale `window.ethereum` global (the source of the original flakiness: multiple
-      // extensions racing to own that one object).
+      // Fetched fresh, from wagmi's connector, every send — never a stale or ambiguous
+      // window.ethereum reference, and never mutates any browser global.
       const provider = (await connector.getProvider()) as Eip1193Provider;
-      const win = window as unknown as WindowWithEthereum;
-      originalRef.current = win.ethereum ?? null;
       const guarded = createGuardedProvider(provider, {
         mode: "block",
-        onVerdict: (verdict, tx) => {
-          const view = toResultView(verdict);
-          const outcome: GuardEvent["outcome"] = verdict.willRevert
-            ? "blocked"
-            : view.hasCriticalRisk
-              ? "flagged"
-              : "allowed";
-          setCheckedCount((c) => c + 1);
-          if (outcome === "blocked") setBlockedCount((c) => c + 1);
-          if (outcome === "flagged") setFlaggedCount((c) => c + 1);
-          setSavedMON((s) => s + Number(verdict.savingsVsNaiveMON ?? "0"));
-          idRef.current += 1;
-          setEvents((evs) =>
-            [
-              {
-                id: idRef.current,
-                to: typeof tx.to === "string" ? tx.to : undefined,
-                outcome,
-                narrative: narrateVerdict(view),
-              },
-              ...evs,
-            ].slice(0, 20),
-          );
+        onVerdict: (v) => {
+          verdict = v;
         },
       });
-      // Dapps that check the ambient `window.ethereum` global (the vast majority) pick up the
-      // guarded version for the rest of this tab. Wallets only reachable via EIP-6963 announce
-      // events (no window.ethereum shim) aren't interceptable this way — a real gap, not silently
-      // pretended away.
-      win.ethereum = guarded;
-      setActive(true);
+      const hash = (await guarded.request({
+        method: "eth_sendTransaction",
+        params: [{ from: address, to: preset.tx.to, data: preset.tx.data, value: preset.tx.value }],
+      })) as string;
+      setState({ kind: "forwarded", view: toResultView(verdict!), hash });
     } catch (e) {
-      setEnableError(e instanceof Error ? e.message : "Could not read the wallet's provider.");
-    } finally {
-      setEnabling(false);
+      if (e instanceof ReckonRefusedError && verdict) {
+        setState({ kind: "blocked", view: toResultView(verdict) });
+      } else if (verdict) {
+        // Reckon let it through to the wallet; the wallet itself rejected or errored
+        // (e.g. the user clicked "Reject" on the signing prompt) — a different outcome
+        // from Reckon refusing to send it, so it gets a different label.
+        setState({
+          kind: "rejected",
+          view: toResultView(verdict),
+          detail: e instanceof Error ? e.message : "Rejected in wallet.",
+        });
+      } else {
+        setState({ kind: "error", message: e instanceof Error ? e.message : "Something went wrong." });
+      }
     }
-  }, [connector]);
-
-  const disable = useCallback(() => {
-    if (typeof window === "undefined") return;
-    const win = window as unknown as WindowWithEthereum;
-    if (originalRef.current) win.ethereum = originalRef.current;
-    originalRef.current = null;
-    setActive(false);
-  }, []);
+  }
 
   if (!isConnected) {
     return (
       <div className="guard-console-empty">
         <p className="blurb">
-          Connect a real wallet above to turn this on. Once enabled, Reckon wraps its provider in
-          this browser tab: every transaction any Monad testnet dApp asks it to sign gets
-          pre-flighted first, before your wallet ever prompts you.
+          Connect a real wallet above to run this. Each button below sends that exact transaction
+          through your actual connected wallet, wrapped by Reckon first, a real send, not a
+          simulation: the doomed one should never reach a signing prompt, the risky one should
+          reach your wallet flagged, and the healthy one should reach it with a tightened gas
+          limit.
         </p>
       </div>
     );
   }
 
-  const trimmedSaved = savedMON > 0 ? savedMON.toPrecision(3).replace(/\.?0+$/, "") : "0";
-
   return (
-    <div className="guard-console">
-      <div className="guard-status-row">
-        <div className={`guard-pill ${active ? "on" : "off"}`}>
-          <span className="guard-dot" />
-          {active ? "Guard active" : "Guard off"}
-        </div>
-        {active ? (
-          <button className="btn btn-sm" onClick={disable}>
-            Disable
-          </button>
-        ) : (
-          <button className="btn btn-primary btn-sm" onClick={enable} disabled={enabling}>
-            {enabling ? "Enabling…" : "Enable Reckon Guard"}
-          </button>
-        )}
-        {active && (
-          <div className="guard-stats">
-            <span>{checkedCount} checked</span>
-            <span>{blockedCount} blocked</span>
-            <span>{flaggedCount} flagged</span>
-            <span>{trimmedSaved} MON saved</span>
-          </div>
-        )}
-      </div>
-
-      {enableError && <p className="wallet-error">{enableError}</p>}
-
-      {active && (
-        <p className="blurb" style={{ marginTop: 10 }}>
-          Reckon is wrapping this tab&apos;s wallet provider right now. Go use any Monad testnet
-          dApp in this browser tab, a faucet, a swap, an NFT mint, and every{" "}
-          <span className="mono">eth_sendTransaction</span> it tries gets checked here first,
-          before your wallet ever opens.
-        </p>
-      )}
-
-      {events.length > 0 && (
-        <div className="guard-feed">
-          {events.map((e) => (
-            <div key={e.id} className={`guard-feed-row ${e.outcome}`}>
-              <span className="guard-feed-badge">
-                {e.outcome === "blocked" ? "BLOCKED" : e.outcome === "flagged" ? "FLAGGED" : "ALLOWED"}
-              </span>
-              <span className="guard-feed-narrative">{e.narrative}</span>
-              {e.to && (
-                <span className="guard-feed-to mono">
-                  → {e.to.slice(0, 6)}…{e.to.slice(-4)}
+    <div className="widget">
+      <div className="widget-grid">
+        <div className="panel left">
+          <p className="blurb" style={{ marginBottom: 14 }}>
+            These go through your real connected wallet, not a preflight-only check. Reckon wraps
+            it first: expect no popup at all for the broken call, a real signing prompt (flagged)
+            for the risky approval, and a real signing prompt (tightened gas) for the healthy read.
+          </p>
+          <div className="action-cards">
+            {ACTIONS.map((a) => (
+              <button
+                key={a.presetId}
+                className={`action-card ${activeId === a.presetId ? "active" : ""}`}
+                onClick={() => send(a.presetId)}
+                disabled={state.kind === "sending"}
+              >
+                <span className={`action-icon ${a.icon}`}>
+                  <Icon name={a.icon} size={18} />
                 </span>
-              )}
-            </div>
-          ))}
+                <span className="action-title">{a.title}</span>
+                <span className="action-tagline">{a.tagline}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      )}
+
+        <div className="panel">
+          <div className="verdict">
+            {state.kind === "idle" && (
+              <div className="verdict-empty">
+                Pick an action on the left.
+                <br />
+                Sends a real <span className="mono">eth_sendTransaction</span> through your
+                connected wallet on Monad testnet.
+              </div>
+            )}
+            {state.kind === "sending" && (
+              <div className="verdict-empty">
+                Pre-flighting against live testnet, check your wallet for a prompt…
+              </div>
+            )}
+            {state.kind === "error" && (
+              <div className="verdict-empty" style={{ color: "var(--block)" }}>
+                {state.message}
+              </div>
+            )}
+            {state.kind === "blocked" && (
+              <>
+                <p className="narrative block">{narrateVerdict(state.view)}</p>
+                <div className="badge block">● BLOCKED — never reached your wallet</div>
+              </>
+            )}
+            {state.kind === "rejected" && (
+              <>
+                <p className={`narrative ${state.view?.hasCriticalRisk ? "warn" : "ok"}`}>
+                  {state.view ? narrateVerdict(state.view) : ""}
+                </p>
+                <div className="badge warn">● Reached your wallet, then rejected: {state.detail}</div>
+              </>
+            )}
+            {state.kind === "forwarded" && (
+              <>
+                <p className={`narrative ${state.view.hasCriticalRisk ? "warn" : "ok"}`}>
+                  {narrateVerdict(state.view)}
+                </p>
+                <div className={`badge ${state.view.hasCriticalRisk ? "warn" : "ok"}`}>
+                  ● SENT — <a className="txlink" href={`${EXPLORER}/tx/${state.hash}`}>view on explorer ↗</a>
+                </div>
+              </>
+            )}
+
+            {(state.kind === "blocked" || state.kind === "forwarded" || state.kind === "rejected") &&
+              state.view &&
+              state.view.riskFlags.length > 0 && (
+                <div className="risk-flags">
+                  {state.view.riskFlags.map((f, i) => (
+                    <div key={i} className={`risk-flag ${f.severity}`}>
+                      <span className="risk-flag-sev">{f.severity.toUpperCase()}</span>
+                      <span>
+                        <span className="risk-flag-msg">{narrateRiskFlag(f)}</span>
+                        <span className="risk-flag-technical">{f.message}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

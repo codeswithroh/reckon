@@ -30,8 +30,8 @@ export function DashboardApp() {
           <h2>Live guard</h2>
         </div>
         <p className="sec-sub">
-          This is the real thing, not a demo: Reckon wraps your wallet&apos;s provider and checks
-          every transaction before it&apos;s signed, in any dApp you use, not just this page.
+          Three real sends through your actual connected wallet, wrapped by Reckon first, not a
+          preflight-only check. Watch the doomed one never reach a signing prompt at all.
         </p>
         <div className="report-card" data-reveal>
           <GuardConsole />

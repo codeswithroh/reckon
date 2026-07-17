@@ -22,9 +22,9 @@ export default function DashboardPage() {
       <div className="app-shell-banner">
         <h1>Your Monad safety dashboard</h1>
         <p>
-          Not a sandbox: connect your wallet and Reckon actually guards it, live, in this
-          browser, in whatever dApp you go use next. See its real history, revoke what you find,
-          and check it all before you sign, not after.
+          Not a sandbox: connect your wallet and send real transactions through it, guarded, on
+          this page. See its real history, revoke what you find, and check it all before you
+          sign, not after.
         </p>
       </div>
 
