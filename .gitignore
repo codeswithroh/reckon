@@ -42,5 +42,8 @@ research/gas-model/node_modules/
 
 web/out/
 
-# netlify
+# netlify (legacy, deploys are Vercel-only now)
 .netlify/
+
+# vercel
+.vercel/

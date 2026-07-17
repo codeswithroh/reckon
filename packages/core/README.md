@@ -1,6 +1,6 @@
 # @codeswithroh/reckon-core
 
-The pre-flight engine behind [Reckon](https://reckon-monad-seatbelt.netlify.app) — a transaction
+The pre-flight engine behind [Reckon](https://reckon-monad-seatbelt.vercel.app) — a transaction
 seatbelt for [Monad](https://monad.xyz).
 
 On Monad you pay for the gas limit you **declare**, not the gas you use, even when your

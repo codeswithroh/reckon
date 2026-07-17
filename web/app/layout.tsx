@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
-const SITE_URL = "https://reckon-monad-seatbelt.netlify.app";
+const SITE_URL = "https://reckon-monad-seatbelt.vercel.app";
 const DESCRIPTION =
   "On Monad you pay for the gas limit you declare, even when a tx reverts. Reckon pre-flights every transaction so you stop burning MON on failures and oversized limits.";
 

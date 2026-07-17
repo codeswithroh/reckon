@@ -1,6 +1,6 @@
 # @codeswithroh/reckon-sdk
 
-A drop-in SDK for [Reckon](https://reckon-monad-seatbelt.netlify.app) — a transaction seatbelt for
+A drop-in SDK for [Reckon](https://reckon-monad-seatbelt.vercel.app) — a transaction seatbelt for
 [Monad](https://monad.xyz). Pre-flight and safe-send transactions, guard an EIP-1193 wallet
 provider so doomed or risky transactions never reach the wallet, or route a batch through the
 on-chain `GuardedExecutor`.

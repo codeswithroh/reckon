@@ -2,7 +2,7 @@
 
 **A transaction seatbelt for Monad.** Stop burning MON on failed and over-sized transactions.
 
-**Live app → [reckon-monad-seatbelt.netlify.app](https://reckon-monad-seatbelt.netlify.app)** ·
+**Live app → [reckon-monad-seatbelt.vercel.app](https://reckon-monad-seatbelt.vercel.app)** ·
 **Repo → [github.com/codeswithroh/reckon](https://github.com/codeswithroh/reckon)** ·
 **Contract → [`0x84e5…B6AE`](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE)**
 

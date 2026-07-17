@@ -2,7 +2,7 @@
 
 A multi-page Next.js 14 (App Router) static export: a marketing landing page, plus a separate
 product app with three flows. Deployed at
-[reckon-monad-seatbelt.netlify.app](https://reckon-monad-seatbelt.netlify.app).
+[reckon-monad-seatbelt.vercel.app](https://reckon-monad-seatbelt.vercel.app).
 
 ## Pages
 
@@ -95,12 +95,27 @@ npm run build -w @reckon/web
 cd out && python3 -m http.server 3121   # or `npx serve .`
 ```
 
+## Deploy
+
+Vercel only, project `web` under the `codeswithrohs-projects` scope (`web/.vercel/project.json`,
+gitignored). Deploy from the `web/` directory:
+
+```bash
+cd web && vercel --prod --yes
+```
+
+Production alias is `reckon-monad-seatbelt.vercel.app` (set via `vercel alias set <deployment-url>
+reckon-monad-seatbelt.vercel.app`; only needs to be re-run if the alias is ever removed). New
+Vercel projects default to "Vercel Authentication" protection on every `*.vercel.app` URL, which
+would put a login wall in front of this public demo — disabled once via the API
+(`ssoProtection: null` on `PATCH /v9/projects/{id}`), which persists for the project going forward.
+
 ## Static export gotcha
 
 `next.config.mjs` sets `trailingSlash: true`. This is required once a route (`/app`) is also the
 parent of nested routes (`/app/proof`, `/app/integrate`) — without it, static export produces a
 colliding `app.html` file *and* an `app/` directory, which 404s under clean-URL resolution
-(confirmed against both a plain static server and Netlify). Keep it on if you add more nested
+(confirmed against both a plain static server and Vercel). Keep it on if you add more nested
 routes.
 
 ## Design
