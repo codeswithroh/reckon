@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-import { Header } from "../../components/Header";
-import { Footer } from "../../components/Footer";
-import { RevealController } from "../../components/Reveal";
 import { BarChart } from "../../components/BarChart";
 import demo from "../../lib/demo-results.json";
 
@@ -17,20 +14,8 @@ export default function ProofPage() {
   const s0 = demo.scenarios[0]!;
   const s1 = demo.scenarios[1]!;
   return (
-    <div className="wrap">
-      <RevealController />
-      <Header variant="app" />
-
-      <div className="app-shell-banner">
-        <h1>On-chain proof</h1>
-        <p>
-          A real autonomous agent, run twice on Monad testnet: once naive, once Reckon-guarded.
-          Every number below is a real balance delta; every hash is a real, explorer-verifiable
-          transaction. Nothing here is simulated or mocked.
-        </p>
-      </div>
-
-      <section style={{ paddingTop: 12 }}>
+    <>
+      <section style={{ paddingTop: 0 }}>
         <div className="section-visual" data-reveal>
           <BarChart
             data={[
@@ -111,8 +96,6 @@ export default function ProofPage() {
           <a href="https://github.com/codeswithroh/reckon">repo</a>.
         </p>
       </section>
-
-      <Footer />
-    </div>
+    </>
   );
 }

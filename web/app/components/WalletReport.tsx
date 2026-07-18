@@ -150,7 +150,14 @@ function reportHeadline(result: WalletScanResult): { text: string; tone: "ok" | 
   };
 }
 
-export function WalletReport({ wallet }: { wallet: WalletState }) {
+export function WalletReport({
+  wallet,
+  onResult,
+}: {
+  wallet: WalletState;
+  /** Lets a parent (e.g. the dashboard's KPI row) reflect the latest scan without re-scanning itself. */
+  onResult?: (result: WalletScanResult | null) => void;
+}) {
   const address = wallet.address;
   const { address: connectedAddress, isConnected } = useConnection();
   // Revoking sends a real tx `from` the scanned address — only offer it when the wallet actually
@@ -163,6 +170,7 @@ export function WalletReport({ wallet }: { wallet: WalletState }) {
   useEffect(() => {
     if (!address) {
       setResult(null);
+      onResult?.(null);
       return;
     }
     let cancelled = false;
@@ -171,7 +179,10 @@ export function WalletReport({ wallet }: { wallet: WalletState }) {
     setResult(null);
     scanWalletActivity(client, address)
       .then((r) => {
-        if (!cancelled) setResult(r);
+        if (!cancelled) {
+          setResult(r);
+          onResult?.(r);
+        }
       })
       .catch((e) => {
         if (!cancelled) setError(e instanceof Error ? e.message : "Scan failed.");
@@ -182,6 +193,7 @@ export function WalletReport({ wallet }: { wallet: WalletState }) {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);
 
   if (!address) {

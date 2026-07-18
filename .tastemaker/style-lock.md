@@ -79,10 +79,22 @@ link-2, alert-triangle, check-circle-2, x-circle, bar-chart-3, wallet, code-2, f
 - **Landing (`/`)** — marketing only, no embedded tool. Header + footer + 4 sections: hero,
   problem (GasChargeDiagram + incident stats), how-it-works (3 icon cards), proof summary
   (BarChart + CTA into the full evidence page).
-- **Product app (`/app/*`)** — the actual tool, in its own shell (`.app-shell-banner` + tab-style
-  nav via `Header variant="app"`): `/app` (pre-flight dashboard), `/app/proof` (full on-chain
-  evidence + BarChart + tx-by-tx table), `/app/integrate` (tabbed SDK/MCP/wallet-guard docs via
-  `IntegrateTabs.tsx`).
+- **Product app (`/app/*`)** — a real dashboard IA, not a stacked marketing page (rebuilt
+  2026-07-18 to match a reference dashboard layout the user supplied). `app/app/layout.tsx` wraps
+  every product route in `.app-shell`: a sticky 240px `AppSidebar` (logo, nav with active-state
+  highlighting, GitHub + back-to-site) and an `.app-main` column with a sticky `AppTopbar`
+  (per-route title/sub via a pathname map + a live wagmi `useConnection()` status pill) above
+  `.app-content`. `/app` (`DashboardApp.tsx`) leads with a `.kpi-row` of 4 `StatCard`s (the "one
+  number you open the app to check" rule from `component-patterns.md`: MON burned, risky
+  approvals, session sends checked, session MON saved — the last two lifted live from
+  `GuardConsole`'s `onOutcome` and `WalletReport`'s `onResult` callbacks, not separately computed),
+  then a `.dash-grid` (Live Guard wide left, Wallet Connect + History stacked right), then two
+  full-width `.dash-panel-full` cards (no-wallet demo, deployed-contract proof). `/app/proof` and
+  `/app/integrate` render as plain content inside the same shell, no per-page chrome duplication.
+- The old `Header variant="app"` tab-nav and `.app-shell-banner` are gone along with the "app"
+  variant of `Header` itself (now landing-only) — removed as dead code, not left disabled.
 - Next static export requires `trailingSlash: true` once a route (`/app`) is also a parent of
   nested routes (`/app/proof`) — without it, export produces a colliding `app.html` file and `app/`
-  directory that 404s on clean-URL resolution. Confirmed this the hard way; keep trailingSlash on.
+  directory that 404s on clean-URL resolution. This also means `usePathname()` returns a trailing
+  slash (`/app/proof/`) under this export mode — `AppTopbar`'s route-title lookup normalizes it
+  before matching (caught live: the Proof page briefly showed the Overview title before the fix).

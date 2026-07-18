@@ -7,14 +7,7 @@ const LANDING_LINKS = [
   { href: "/#proof", label: "Proof" },
 ];
 
-const APP_LINKS = [
-  { href: "/app", label: "Dashboard" },
-  { href: "/app/proof", label: "Proof" },
-  { href: "/app/integrate", label: "Integrate" },
-];
-
-export function Header({ variant }: { variant: "landing" | "app" }) {
-  const links = variant === "landing" ? LANDING_LINKS : APP_LINKS;
+export function Header() {
   return (
     <nav className="nav">
       <Link href="/" className="brand">
@@ -22,21 +15,15 @@ export function Header({ variant }: { variant: "landing" | "app" }) {
         Reckon
       </Link>
       <div className="nav-links">
-        {links.map((l) => (
+        {LANDING_LINKS.map((l) => (
           <a key={l.href} href={l.href}>
             {l.label}
           </a>
         ))}
         <a href="https://github.com/codeswithroh/reckon">GitHub &#8599;</a>
-        {variant === "landing" ? (
-          <Link href="/app" className="btn btn-primary btn-sm">
-            Launch app
-          </Link>
-        ) : (
-          <Link href="/" className="btn btn-sm">
-            &#8592; Back to site
-          </Link>
-        )}
+        <Link href="/app" className="btn btn-primary btn-sm">
+          Launch app
+        </Link>
       </div>
     </nav>
   );

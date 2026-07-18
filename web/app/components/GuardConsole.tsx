@@ -68,7 +68,12 @@ type SendState =
   | { kind: "rejected"; view: PreflightResult | null; detail: string }
   | { kind: "error"; message: string };
 
-export function GuardConsole() {
+export function GuardConsole({
+  onOutcome,
+}: {
+  /** Lets a parent (e.g. the dashboard's KPI row) tally session results without owning the send logic. */
+  onOutcome?: (view: PreflightResult, kind: "blocked" | "forwarded" | "rejected") => void;
+} = {}) {
   const { isConnected, connector, address } = useConnection();
   const [activeId, setActiveId] = useState<string>(ACTIONS[0]!.presetId);
   const [state, setState] = useState<SendState>({ kind: "idle" });
@@ -93,19 +98,25 @@ export function GuardConsole() {
         method: "eth_sendTransaction",
         params: [{ from: address, to: preset.tx.to, data: preset.tx.data, value: preset.tx.value }],
       })) as string;
-      setState({ kind: "forwarded", view: toResultView(verdict!), hash });
+      const view = toResultView(verdict!);
+      setState({ kind: "forwarded", view, hash });
+      onOutcome?.(view, "forwarded");
     } catch (e) {
       if (e instanceof ReckonRefusedError && verdict) {
-        setState({ kind: "blocked", view: toResultView(verdict) });
+        const view = toResultView(verdict);
+        setState({ kind: "blocked", view });
+        onOutcome?.(view, "blocked");
       } else if (verdict) {
         // Reckon let it through to the wallet; the wallet itself rejected or errored
         // (e.g. the user clicked "Reject" on the signing prompt) — a different outcome
         // from Reckon refusing to send it, so it gets a different label.
+        const view = toResultView(verdict);
         setState({
           kind: "rejected",
-          view: toResultView(verdict),
+          view,
           detail: e instanceof Error ? e.message : "Rejected in wallet.",
         });
+        onOutcome?.(view, "rejected");
       } else {
         setState({ kind: "error", message: e instanceof Error ? e.message : "Something went wrong." });
       }

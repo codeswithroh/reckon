@@ -14,7 +14,7 @@ export default function LandingPage() {
   return (
     <div className="wrap">
       <RevealController />
-      <Header variant="landing" />
+      <Header />
 
       {/* 1. HERO */}
       <header className="hero">

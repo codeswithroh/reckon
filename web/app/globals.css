@@ -850,24 +850,6 @@ footer {
   color: var(--text-muted);
 }
 
-/* ---- app shell (product routes) ---- */
-.app-shell-banner {
-  background: linear-gradient(180deg, rgba(131, 110, 249, 0.08), transparent);
-  border-bottom: 1px solid var(--border);
-  padding: 28px 0;
-  margin-bottom: 8px;
-}
-.app-shell-banner h1 {
-  font-size: 28px;
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-.app-shell-banner p {
-  color: var(--text-muted);
-  margin: 8px 0 0;
-  font-size: 14px;
-  max-width: 640px;
-}
 .tabs {
   display: flex;
   gap: 8px;
@@ -957,12 +939,6 @@ footer {
 }
 
 /* ---- wallet report ---- */
-.report-card {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 12px;
-  padding: 22px;
-}
 .report-empty {
   color: var(--text-muted);
   font-size: 13.5px;
@@ -1256,4 +1232,270 @@ footer {
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid var(--border);
+}
+
+/* ============================================================
+   Dashboard shell (product routes): real sidebar + topbar app IA,
+   not a stacked marketing page. Reuses the locked dark/purple palette.
+   ============================================================ */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+/* ---- sidebar ---- */
+.app-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 20px 14px;
+}
+.app-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding: 6px 10px 22px;
+}
+.app-sidebar-brand svg {
+  display: block;
+}
+.app-sidebar-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 10px 8px;
+}
+.app-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.app-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  transition: background 0.12s, color 0.12s;
+}
+.app-sidebar-link:hover {
+  color: var(--text);
+  background: var(--surface-2);
+  text-decoration: none;
+}
+.app-sidebar-link.active {
+  color: var(--text);
+  background: rgba(131, 110, 249, 0.12);
+  border: 1px solid rgba(131, 110, 249, 0.3);
+}
+.app-sidebar-link.active svg {
+  color: var(--accent-text);
+}
+.app-sidebar-link svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+.app-sidebar-spacer {
+  flex: 1;
+}
+.app-sidebar-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* ---- topbar ---- */
+.app-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 5;
+}
+.app-topbar-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.app-topbar-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.app-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+.app-status-pill.connected {
+  color: var(--ok);
+  border-color: rgba(63, 185, 80, 0.35);
+  background: rgba(63, 185, 80, 0.08);
+}
+.app-status-pill .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ---- main / content ---- */
+.app-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.app-content {
+  padding: 24px 28px 60px;
+  max-width: 1320px;
+}
+
+/* ---- KPI stat row ---- */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+@media (max-width: 900px) {
+  .kpi-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.kpi-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+.kpi-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.kpi-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+.kpi-icon.block {
+  color: var(--block);
+  border-color: rgba(248, 81, 73, 0.3);
+  background: rgba(248, 81, 73, 0.08);
+}
+.kpi-icon.warn {
+  color: var(--warn);
+  border-color: rgba(227, 179, 65, 0.3);
+  background: rgba(227, 179, 65, 0.08);
+}
+.kpi-icon.ok {
+  color: var(--ok);
+  border-color: rgba(63, 185, 80, 0.3);
+  background: rgba(63, 185, 80, 0.08);
+}
+.kpi-icon.accent {
+  color: var(--accent-text);
+  border-color: rgba(131, 110, 249, 0.3);
+  background: rgba(131, 110, 249, 0.08);
+}
+.kpi-num {
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.kpi-lbl {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ---- dashboard widget grid ---- */
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 1000px) {
+  .dash-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.dash-panel {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 20px;
+}
+.dash-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.dash-panel-head h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.dash-panel-sub {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 4px 0 16px;
+}
+.dash-panel-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.dash-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dash-panel-full {
+  margin-top: 16px;
 }
