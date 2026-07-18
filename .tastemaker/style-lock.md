@@ -132,3 +132,25 @@ components (GasChargeDiagram, BarChart, verdict cards):
   `RiskFlagView` messages) were deliberately left untouched — those are the actual show-don't-tell
   content (a real verdict on a real transaction), not filler prose, and cutting them would remove
   the thing the whole redesign exists to surface.
+
+## Wallet connect modal (2026-07-19)
+
+User asked for RainbowKit specifically. Checked first: RainbowKit 2.2.11, ConnectKit 1.9.2, and
+Reown AppKit are all still pinned to `wagmi: ^2.x` peer deps — none support the project's
+`wagmi@3.7.2` (upgraded earlier this session for its EIP-6963 multi-wallet discovery). No safe
+drop-in existed, so built the same UX natively instead of downgrading a working, tested wallet
+stack: `WalletConnect.tsx`'s old always-visible grid of per-wallet buttons is now a single
+"Connect wallet" button that opens `.wallet-modal` — a centered list of every EIP-6963-announced
+connector, each with its real `connector.icon` (browsers/wallets supply this per the EIP-6963
+spec, no icon-sourcing step needed), falling back to the `wallet` Icon glyph when a connector
+doesn't supply one. "or paste an address" collapsed behind a toggle instead of an always-visible
+input row.
+
+**Real bug caught and fixed live**: the modal's `position: fixed` backdrop, rendered inline inside
+the panel tree, was positioning relative to the nearest `[data-reveal]` ancestor instead of the
+viewport, because GSAP's reveal animation leaves an inline `transform` on that ancestor after it
+settles, and any transformed ancestor becomes the containing block for `position: fixed`
+descendants. This is the same class of bug as the earlier `position: sticky` + GSAP-transform
+interaction, just the fixed-position variant. Fixed by portaling the modal to `document.body` via
+`createPortal` (the standard fix, and how RainbowKit's own modal avoids this exact problem) —
+confirmed centered and fully on top in the live browser both locally and on the Vercel deploy.
