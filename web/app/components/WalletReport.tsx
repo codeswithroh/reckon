@@ -5,6 +5,7 @@ import { useConnection } from "wagmi";
 import { monadTestnet, type RiskFlag } from "@codeswithroh/reckon-core";
 import { scanWalletActivity, type WalletScanResult, type RiskyTx } from "../lib/walletScan";
 import { narrateRiskFlag } from "../lib/narrate";
+import { Tooltip } from "./Tooltip";
 import type { WalletState } from "./WalletConnect";
 
 const client = createPublicClient({ chain: monadTestnet, transport: http() });
@@ -120,34 +121,11 @@ function RevokeButton({ flag, tx, from }: { flag: RiskFlag; tx: RiskyTx; from: A
 
 function reportHeadline(result: WalletScanResult): { text: string; tone: "ok" | "warn" | "block" } {
   const hasCritical = result.riskyTxs.some((t) => t.flags.some((f) => f.severity === "critical"));
-  if (hasCritical) {
-    return {
-      text: `This wallet has ${result.riskyTxs.length} outstanding approval${result.riskyTxs.length === 1 ? "" : "s"} that let another address move its tokens. If you don't recognize the spender below, revoke it.`,
-      tone: "block",
-    };
-  }
-  if (result.revertCount > 0) {
-    return {
-      text: `${result.revertCount} recent transaction${result.revertCount === 1 ? "" : "s"} failed and still charged the full declared gas limit, burning ${trimMon(result.totalBurnedWei)} MON for nothing. That's how Monad's gas model works: reverts don't refund.`,
-      tone: "block",
-    };
-  }
-  if (result.riskyTxs.length > 0) {
-    return {
-      text: `${result.riskyTxs.length} approval${result.riskyTxs.length === 1 ? "" : "s"} found in this window. Nothing critical, but worth a glance below.`,
-      tone: "warn",
-    };
-  }
-  if (result.txCount === 0) {
-    return {
-      text: "No transactions found for this address in the scanned window. Either it's new, or its activity is further back than this scan reaches.",
-      tone: "ok",
-    };
-  }
-  return {
-    text: `Clean record: ${result.txCount} transaction${result.txCount === 1 ? "" : "s"} found, none reverted, no risky approvals granted.`,
-    tone: "ok",
-  };
+  if (hasCritical) return { text: "Risky approvals found, review below.", tone: "block" };
+  if (result.revertCount > 0) return { text: "MON burned on failed sends.", tone: "block" };
+  if (result.riskyTxs.length > 0) return { text: "A few approvals to review.", tone: "warn" };
+  if (result.txCount === 0) return { text: "No activity in this window.", tone: "ok" };
+  return { text: "Clean record.", tone: "ok" };
 }
 
 export function WalletReport({
@@ -197,13 +175,7 @@ export function WalletReport({
   }, [address]);
 
   if (!address) {
-    return (
-      <div className="report-empty">
-        Connect a wallet or paste an address above to see a real safety report: recent failed
-        transactions, MON burned, and any outstanding risky approvals, scanned live from Monad
-        testnet.
-      </div>
-    );
+    return <div className="report-empty">Connect a wallet or paste an address above.</div>;
   }
 
   if (loading) {
@@ -252,7 +224,10 @@ export function WalletReport({
 
       {result.revertedTxs.length > 0 && (
         <div className="report-section">
-          <h4>Reverted transactions (full gas limit still charged)</h4>
+          <h4>
+            Reverted transactions
+            <Tooltip text="Monad charges the full declared gas limit even on a revert. These still cost you." />
+          </h4>
           {result.revertedTxs.map((t) => (
             <div className="report-row" key={t.hash}>
               <a className="txlink" href={`${EXPLORER}/tx/${t.hash}`}>
@@ -266,7 +241,10 @@ export function WalletReport({
 
       {result.riskyTxs.length > 0 && (
         <div className="report-section">
-          <h4>Approvals granted (review if you don&apos;t recognize them)</h4>
+          <h4>
+            Open approvals
+            <Tooltip text="These let another address move your tokens. Revoke anything you don't recognize." />
+          </h4>
           {result.riskyTxs.map((t) => (
             <div key={t.hash} className="report-row-flags">
               <a className="txlink" href={`${EXPLORER}/tx/${t.hash}`}>
@@ -291,8 +269,7 @@ export function WalletReport({
 
       {result.timedOut && (
         <p className="blurb" style={{ marginTop: 10 }}>
-          Scan hit its time limit and stopped early, results are from a partial window, not full
-          history.
+          Partial scan, hit the time limit.
         </p>
       )}
     </div>

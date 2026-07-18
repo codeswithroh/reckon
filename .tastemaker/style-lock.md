@@ -98,3 +98,37 @@ link-2, alert-triangle, check-circle-2, x-circle, bar-chart-3, wallet, code-2, f
   directory that 404s on clean-URL resolution. This also means `usePathname()` returns a trailing
   slash (`/app/proof/`) under this export mode — `AppTopbar`'s route-title lookup normalizes it
   before matching (caught live: the Proof page briefly showed the Overview title before the fix).
+
+## Text-density pass (2026-07-18)
+
+The user explicitly wants a storyteller-not-explainer UX: minimal reading, visual/interactive
+carriers of meaning. Two new reusable primitives now sit alongside the existing show-don't-tell
+components (GasChargeDiagram, BarChart, verdict cards):
+
+- **`Tooltip.tsx`** — CSS-only hover/focus popover (`.tt-wrap`/`.tt-dot`/`.tt-bubble`), no JS
+  positioning. Used to move a sentence of detail off a label and onto a small "?" dot next to it —
+  KPI stat labels, section headers (`Reverted transactions`, `Open approvals`), the deployed-contract
+  panel title. The visible label stays one or two words; the full sentence is one hover away, not
+  always on-screen.
+- **`FlowLoop.tsx`** — the app's entire mental model as 3 pill-shaped steps (Connect → Reckon checks
+  → You decide) with `→` connectors, rendered once at the top of `DashboardApp`. Replaces what used
+  to be a paragraph repeated in slightly different words across the Live Guard blurb, the empty
+  wallet-report state, and the topbar sub. One visual instead of three sentences saying the same
+  thing.
+- **`GuardLegend`** (inline in `GuardConsole.tsx`) — the block/flag/allow outcome space as 3 colored
+  dot chips ("Blocked before signing" / "Flagged, you decide" / "Sent, gas tightened"), each with a
+  `Tooltip` for the mechanism detail. Replaces both of `GuardConsole`'s old 3-4 sentence blurbs
+  (connected and disconnected states) — the same information, shown as a legend instead of read as
+  prose, and it's now visible in both states instead of only when connected.
+- `WalletReport`'s `reportHeadline()` was cut from full sentences (e.g. "This wallet has N
+  outstanding approval(s) that let another address move its tokens...") to a 2-4 word status phrase
+  ("Risky approvals found, review below.") — the actual numbers were already duplicated a few lines
+  below in the `.report-stats` grid, so the sentence was restating a visual that already existed.
+  Classic case of the show-don't-tell rule catching a section that was *mostly* already visual but
+  still had a redundant text summary bolted on top.
+- Every `dash-panel-sub`/`sec-sub` explanatory paragraph across `DashboardApp`, `GuardedActions`,
+  and all four `IntegrateTabs` panels was cut to one short line or removed outright where a sibling
+  panel header/tag already carried the meaning. The payoff narratives (`narrateVerdict` output,
+  `RiskFlagView` messages) were deliberately left untouched — those are the actual show-don't-tell
+  content (a real verdict on a real transaction), not filler prose, and cutting them would remove
+  the thing the whole redesign exists to surface.

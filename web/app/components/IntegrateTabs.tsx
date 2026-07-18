@@ -32,10 +32,7 @@ export function IntegrateTabs() {
 
       {tab === "sdk" && (
         <div className="tab-panel">
-          <p className="sec-sub">
-            A drop-in viem wrapper for any dApp or deploy script. Pre-flight before you send, or
-            route a whole batch through the on-chain guard.
-          </p>
+          <p className="sec-sub">A drop-in wrapper for any dApp or deploy script.</p>
           <div className="code">
             <div>
               <span className="k">import</span> {"{ createReckonClient }"} <span className="k">from</span>{" "}
@@ -71,10 +68,7 @@ export function IntegrateTabs() {
 
       {tab === "mcp" && (
         <div className="tab-panel">
-          <p className="sec-sub">
-            An MCP server so any AI agent pre-flights every transaction before sending it. Wire it
-            into an MCP host&apos;s config, then instruct the agent to call it before every send.
-          </p>
+          <p className="sec-sub">Lets any AI agent pre-flight every send before it happens.</p>
           <div className="code">
             <div>
               <span className="c">{"// mcp host config (e.g. Claude Code / Claude Desktop)"}</span>
@@ -105,11 +99,7 @@ export function IntegrateTabs() {
 
       {tab === "wallet" && (
         <div className="tab-panel">
-          <p className="sec-sub">
-            Wrap any EIP-1193 wallet provider. Every <span className="mono">eth_sendTransaction</span>{" "}
-            is pre-flighted first: doomed transactions are blocked before the wallet even prompts,
-            and healthy ones get the tightest correct gas limit. No UI to build, no user action.
-          </p>
+          <p className="sec-sub">Wrap any wallet. Doomed sends never reach it.</p>
           <div className="code">
             <div>
               <span className="c">{"// wrap the injected wallet. done."}</span>
@@ -135,13 +125,7 @@ export function IntegrateTabs() {
 
       {tab === "composable" && (
         <div className="tab-panel">
-          <p className="sec-sub">
-            The risk detector is a pure function: no RPC call, no network round-trip, just
-            calldata in, a decoded verdict out. That means it isn&apos;t just a page you read, it&apos;s
-            a signal any other system can call directly, a relayer deciding whether to forward a
-            tx, an agent&apos;s own tool-call guard, a wallet&apos;s pre-sign hook, before it ever
-            reaches a human.
-          </p>
+          <p className="sec-sub">A pure function any system can call directly, no network round-trip.</p>
           <div className="code">
             <div>
               <span className="k">import</span> {"{ detectRiskFlags }"} <span className="k">from</span>{" "}

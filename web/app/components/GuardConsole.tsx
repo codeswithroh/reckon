@@ -11,6 +11,7 @@ import { PRESETS } from "../lib/presets";
 import { narrateVerdict, narrateRiskFlag } from "../lib/narrate";
 import type { PreflightResult, RiskFlagView } from "../lib/preflightClient";
 import { Icon, type IconName } from "./Icon";
+import { Tooltip } from "./Tooltip";
 
 const EXPLORER = "https://testnet.monadexplorer.com";
 
@@ -19,21 +20,43 @@ const ACTIONS: Array<{ presetId: string; icon: IconName; title: string; tagline:
     presetId: "unlimited-approve",
     icon: "alert-triangle",
     title: "“Claim” button on a lookalike site",
-    tagline: "Requests unlimited token approval. Reckon should stop this before your wallet ever opens.",
+    tagline: "Unlimited approval request.",
   },
   {
     presetId: "healthy-read",
     icon: "check-circle-2",
     title: "Ordinary contract read",
-    tagline: "A normal, well-formed call. Reckon should let this through to your wallet with a tight gas limit.",
+    tagline: "A normal, safe call.",
   },
   {
     presetId: "pyth-bogus",
     icon: "x-circle",
     title: "Call to a broken function",
-    tagline: "Would revert on-chain. Reckon should refuse to send it before your wallet ever prompts.",
+    tagline: "Broken, would revert.",
   },
 ];
+
+function GuardLegend() {
+  return (
+    <div className="guard-legend">
+      <span className="guard-legend-item">
+        <span className="guard-legend-dot block" />
+        Blocked before signing
+        <Tooltip text="Reckon refuses to send it. Your wallet never opens, you never pay for a failure." />
+      </span>
+      <span className="guard-legend-item">
+        <span className="guard-legend-dot warn" />
+        Flagged, you decide
+        <Tooltip text="Would succeed, but grants a risky standing permission. Sent to your wallet with a warning, not blocked." />
+      </span>
+      <span className="guard-legend-item">
+        <span className="guard-legend-dot ok" />
+        Sent, gas tightened
+        <Tooltip text="A healthy call. Goes to your wallet with the tightest correct gas limit." />
+      </span>
+    </div>
+  );
+}
 
 function jsonSafeDetails(details?: Record<string, unknown>): Record<string, unknown> | undefined {
   if (!details) return undefined;
@@ -126,13 +149,8 @@ export function GuardConsole({
   if (!isConnected) {
     return (
       <div className="guard-console-empty">
-        <p className="blurb">
-          Connect a real wallet above to run this. Each button below sends that exact transaction
-          through your actual connected wallet, wrapped by Reckon first, a real send, not a
-          simulation: the doomed one should never reach a signing prompt, the risky one should
-          reach your wallet flagged, and the healthy one should reach it with a tightened gas
-          limit.
-        </p>
+        <GuardLegend />
+        <p className="blurb">Connect a wallet above to try it for real.</p>
       </div>
     );
   }
@@ -141,11 +159,7 @@ export function GuardConsole({
     <div className="widget">
       <div className="widget-grid">
         <div className="panel left">
-          <p className="blurb" style={{ marginBottom: 14 }}>
-            These go through your real connected wallet, not a preflight-only check. Reckon wraps
-            it first: expect no popup at all for the broken call, a real signing prompt (flagged)
-            for the risky approval, and a real signing prompt (tightened gas) for the healthy read.
-          </p>
+          <GuardLegend />
           <div className="action-cards">
             {ACTIONS.map((a) => (
               <button
@@ -166,18 +180,9 @@ export function GuardConsole({
 
         <div className="panel">
           <div className="verdict">
-            {state.kind === "idle" && (
-              <div className="verdict-empty">
-                Pick an action on the left.
-                <br />
-                Sends a real <span className="mono">eth_sendTransaction</span> through your
-                connected wallet on Monad testnet.
-              </div>
-            )}
+            {state.kind === "idle" && <div className="verdict-empty">Pick an action on the left.</div>}
             {state.kind === "sending" && (
-              <div className="verdict-empty">
-                Pre-flighting against live testnet, check your wallet for a prompt…
-              </div>
+              <div className="verdict-empty">Checking… look for a wallet prompt.</div>
             )}
             {state.kind === "error" && (
               <div className="verdict-empty" style={{ color: "var(--block)" }}>

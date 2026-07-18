@@ -6,6 +6,8 @@ import { GuardConsole } from "./GuardConsole";
 import { WalletReport } from "./WalletReport";
 import { GuardedActions } from "./GuardedActions";
 import { StatCard } from "./StatCard";
+import { FlowLoop } from "./FlowLoop";
+import { Tooltip } from "./Tooltip";
 import type { WalletScanResult } from "../lib/walletScan";
 import type { PreflightResult } from "../lib/preflightClient";
 import { GUARDED_EXECUTOR } from "../lib/presets";
@@ -35,30 +37,36 @@ export function DashboardApp() {
 
   return (
     <>
+      <FlowLoop />
+
       <div className="kpi-row">
         <StatCard
           icon="fuel"
           tone="block"
           value={scan ? `${trimMon(scan.totalBurnedWei)} MON` : "—"}
-          label="MON burned on failed transactions"
+          label="Burned"
+          tooltip="From your wallet's recent history. Reverts still charge full gas on Monad."
         />
         <StatCard
           icon="alert-triangle"
           tone="warn"
           value={scan ? String(scan.riskyTxs.length) : "—"}
-          label="Risky approvals still open"
+          label="Open approvals"
+          tooltip="Unlimited or unrecognized token/NFT approvals found in your scanned history."
         />
         <StatCard
           icon="shield-check"
           tone="accent"
           value={String(sessionChecked)}
-          label={`Sends checked this session${sessionBlocked > 0 ? ` (${sessionBlocked} blocked)` : ""}`}
+          label={sessionBlocked > 0 ? `Checked (${sessionBlocked} blocked)` : "Checked"}
+          tooltip="Sends run through Live Guard below, this session only."
         />
         <StatCard
           icon="check-circle-2"
           tone="ok"
           value={`${trimNum(sessionSavedMON)} MON`}
-          label="MON saved this session"
+          label="Saved"
+          tooltip="Gas saved by Reckon's tighter limit vs. a naive wallet default, this session."
         />
       </div>
 
@@ -68,10 +76,6 @@ export function DashboardApp() {
             <h3>Live guard</h3>
             <span className="dash-panel-tag">real sends</span>
           </div>
-          <p className="dash-panel-sub">
-            Three real sends through your connected wallet, wrapped by Reckon first. Watch the
-            doomed one never reach a signing prompt.
-          </p>
           <GuardConsole onOutcome={handleOutcome} />
         </div>
 
@@ -80,7 +84,6 @@ export function DashboardApp() {
             <div className="dash-panel-head">
               <h3>Your wallet</h3>
             </div>
-            <p className="dash-panel-sub">Connect a real wallet, or paste any Monad address.</p>
             <WalletConnect onChange={setWallet} />
           </div>
 
@@ -88,9 +91,6 @@ export function DashboardApp() {
             <div className="dash-panel-head">
               <h3>Real history</h3>
             </div>
-            <p className="dash-panel-sub">
-              Recent failed transactions and outstanding risky approvals, scanned live.
-            </p>
             <WalletReport wallet={wallet} onResult={setScan} />
           </div>
         </div>
@@ -98,20 +98,19 @@ export function DashboardApp() {
 
       <div className="dash-panel dash-panel-full" data-reveal>
         <div className="dash-panel-head">
-          <h3>No wallet? See it work instantly</h3>
-          <span className="dash-panel-tag">simulated preflight</span>
+          <h3>No wallet? Try it live</h3>
+          <span className="dash-panel-tag">simulated</span>
         </div>
         <GuardedActions />
       </div>
 
       <div className="dash-panel dash-panel-full" data-reveal>
         <div className="dash-panel-head">
-          <h3>On-chain guard, deployed &amp; verified</h3>
+          <h3>
+            Deployed contract
+            <Tooltip text="GuardedExecutor: bounded, predictable batch execution with per-caller policy — value caps, gas-price ceiling, target allowlist." />
+          </h3>
         </div>
-        <p className="dash-panel-sub">
-          <span className="mono">GuardedExecutor</span>: bounded, predictable batch execution with
-          per-caller policy (value caps, gas-price ceiling, target allowlist).
-        </p>
         <div className="contract">
           <div>
             <div className="verified">&#10003; source-verified on MonadVision &amp; Monadscan</div>

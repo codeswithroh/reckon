@@ -15,19 +15,19 @@ const ACTIONS: Array<{
     presetId: "unlimited-approve",
     icon: "alert-triangle",
     title: "“Claim” button on a lookalike site",
-    tagline: "The most common drain vector: an innocuous claim button that actually requests unlimited token approval.",
+    tagline: "Unlimited approval request.",
   },
   {
     presetId: "healthy-read",
     icon: "check-circle-2",
     title: "Ordinary contract read",
-    tagline: "A normal, well-formed call. What most of your transactions should look like.",
+    tagline: "A normal, safe call.",
   },
   {
     presetId: "pyth-bogus",
     icon: "x-circle",
     title: "Call to a broken function",
-    tagline: "Would fail on-chain and, on Monad, still charge the full declared gas limit.",
+    tagline: "Broken, would revert.",
   },
 ];
 
@@ -80,8 +80,7 @@ export function GuardedActions() {
       <div className="widget-grid">
         <div className="panel left">
           <p className="blurb" style={{ marginBottom: 14 }}>
-            No wallet installed, or just want to see it work without touching yours? Pick one of
-            three realistic scenarios and Reckon evaluates it live, against Monad testnet.
+            Three real scenarios, evaluated live, no wallet needed.
           </p>
           <div className="action-cards">
             {ACTIONS.map((a) => (
@@ -144,13 +143,9 @@ export function GuardedActions() {
         <div className="panel">
           <div className="verdict">
             {!verdict && !error && !loading && (
-              <div className="verdict-empty">
-                Pick an action on the left.
-                <br />
-                Runs a real <span className="mono">eth_estimateGas</span> against Monad testnet.
-              </div>
+              <div className="verdict-empty">Pick an action on the left.</div>
             )}
-            {loading && <div className="verdict-empty">Simulating against live testnet…</div>}
+            {loading && <div className="verdict-empty">Simulating…</div>}
             {error && (
               <div className="verdict-empty" style={{ color: "var(--block)" }}>
                 {error}
