@@ -1030,6 +1030,7 @@ footer {
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface-2);
+  color: var(--text);
   cursor: pointer;
   font-family: var(--sans);
 }
