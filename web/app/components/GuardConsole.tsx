@@ -176,7 +176,7 @@ export function GuardConsole() {
             {state.kind === "blocked" && (
               <>
                 <p className="narrative block">{narrateVerdict(state.view)}</p>
-                <div className="badge block">● BLOCKED — never reached your wallet</div>
+                <div className="badge block">● BLOCKED, never reached your wallet</div>
               </>
             )}
             {state.kind === "rejected" && (
@@ -193,7 +193,7 @@ export function GuardConsole() {
                   {narrateVerdict(state.view)}
                 </p>
                 <div className={`badge ${state.view.hasCriticalRisk ? "warn" : "ok"}`}>
-                  ● SENT — <a className="txlink" href={`${EXPLORER}/tx/${state.hash}`}>view on explorer ↗</a>
+                  ● SENT, <a className="txlink" href={`${EXPLORER}/tx/${state.hash}`}>view on explorer ↗</a>
                 </div>
               </>
             )}

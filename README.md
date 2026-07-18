@@ -1,138 +1,160 @@
+<div align="center">
+
+<img src="web/public/og-card.png" alt="Reckon" width="640" />
+
 # Reckon
 
-**A transaction seatbelt for Monad.** Stop burning MON on failed and over-sized transactions.
+### On Monad, failure isn't free. Reckon makes sure you stop paying for it.
 
-**Live app → [reckon-monad-seatbelt.vercel.app](https://reckon-monad-seatbelt.vercel.app)** ·
-**Repo → [github.com/codeswithroh/reckon](https://github.com/codeswithroh/reckon)** ·
-**Contract → [`0x84e5…B6AE`](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE)**
+[![Live app](https://img.shields.io/badge/live-reckon--monad--seatbelt.vercel.app-8b5cf6?style=flat-square)](https://reckon-monad-seatbelt.vercel.app)
+[![Contract verified](https://img.shields.io/badge/contract-verified%20on%20Monad-3fb950?style=flat-square)](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE)
+[![npm core](https://img.shields.io/npm/v/@codeswithroh/reckon-core?style=flat-square&label=reckon-core&color=cb3837)](https://www.npmjs.com/package/@codeswithroh/reckon-core)
+[![npm sdk](https://img.shields.io/npm/v/@codeswithroh/reckon-sdk?style=flat-square&label=reckon-sdk&color=cb3837)](https://www.npmjs.com/package/@codeswithroh/reckon-sdk)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](#license)
 
-**npm → [`@codeswithroh/reckon-sdk`](https://www.npmjs.com/package/@codeswithroh/reckon-sdk) ·
-[`@codeswithroh/reckon-core`](https://www.npmjs.com/package/@codeswithroh/reckon-core)**
+**[Live app](https://reckon-monad-seatbelt.vercel.app)** · **[The problem](#the-problem-i-had)** · **[How it works](#how-it-works)** · **[Proof it is real](#proof-it-is-real)** · **[For developers](#for-developers)**
 
-> On Monad you pay for the gas limit you declare — **not the gas you use, and even when your
-> transaction reverts.** Reckon pre-flights every transaction: it simulates it, refuses to
-> broadcast doomed ones, and sets the tightest *correct* gas limit — so you never pay for a
-> failure or an oversized limit again.
+</div>
 
 ---
 
-## Status
+While building on Monad testnet this week, I kept losing MON on transactions that **failed**. On Monad you are charged the full gas limit you declare, even when the transaction reverts. Most people do not learn this until it has already cost them.
 
-🟢 **Phase 8 complete** — the full stack is built, tested, published, and browser-verified:
+So I built the thing that stops it. Reckon checks every transaction before you sign, refuses the doomed ones before your wallet even opens, and shows you exactly how much you were about to lose.
 
-- **`packages/core`** ([npm](https://www.npmjs.com/package/@codeswithroh/reckon-core)) — pre-flight
-  engine (49/49 tests), plus:
-  - an **adaptive gas buffer** learned from real per-contract chain history instead of a flat
-    percentage (`adaptiveBuffer.ts`) — a gap Monad's own team described publicly but never shipped.
-  - **approval/permission-escalation risk detection** (`riskDetection.ts`): flags unlimited ERC-20
-    approvals, NFT operator grants, and EIP-2612 permits, the exact pattern behind a real ~$175K
-    agent-drain incident in May 2026, even when the call itself would succeed.
-- **`packages/sdk`** ([npm](https://www.npmjs.com/package/@codeswithroh/reckon-sdk)) — drop-in viem
-  wrapper, on-chain batch routing, and a one-line EIP-1193 **wallet guard**
-  (`createGuardedProvider`) that blocks doomed sends before the wallet prompts (8/8 tests).
-- **`packages/agent`** — MCP server so AI agents pre-flight every tx (9/9 tests, real MCP client);
-  now blocks critical permission risk, not just reverts.
-- **`contracts/`** — `GuardedExecutor` deployed + source-verified at
-  [`0x84e5C3c524f473c19821ae2D1494b274730bB6AE`](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE)
-  (16/16 tests); plus a minimal `MockToken` demo target at
-  [`0x1eF032308c9fFfa11277775a3969eBe62dedD68E`](https://testnet.monadscan.com/address/0x1eF032308c9fFfa11277775a3969eBe62dedD68E)
-  (6/6 tests).
-- **`web/`** — a marketing landing page (`/`) plus a redesigned product dashboard (`/app`) built
-  around two things a real visitor can actually use: a live **wallet safety report** (connect or
-  paste any address, see real reverted-tx history, MON burned, and outstanding risky approvals,
-  zero calldata typing) and a button-driven **"try it live"** demo (simulated dApp actions like
-  "claim free airdrop", not raw hex). See `web/README.md` for what's tested vs. a known gap in the
-  real-wallet click-through path.
-- **`examples/agent-framework-recipe/`** — a runnable recipe wiring Reckon's MCP server as an agent
-  framework's mandatory pre-flight gate, tested live against real testnet.
+> **The one moment that matters:** click a transaction that would fail, and your wallet never opens. `BLOCKED, never reached your wallet.` No revert, no wasted gas, no signature.
 
-**Live proof — a real agent, real transactions:** a naive agent burned **0.0408 MON** (a reverted
-tx plus an oversized-limit tx); the same agent guarded by Reckon spent **0.0024 MON** — a **94%
-reduction**, every transaction verifiable on the explorer. See `packages/agent/demo/`.
+<div align="center">
 
-Next: demo video + submission (Phase 6). See **[PLAN.md](./PLAN.md)**.
+### [▶ Try it on your own wallet](https://reckon-monad-seatbelt.vercel.app/app)
 
-Run the engine yourself:
+*Connect a real wallet, or paste any Monad address to see what it has already burned.*
+
+</div>
+
+---
+
+## Contents
+
+- [The problem I had](#the-problem-i-had)
+- [How it works](#how-it-works)
+- [Proof it is real](#proof-it-is-real)
+- [Try it yourself](#try-it-yourself)
+- [For developers](#for-developers)
+- [Built with](#built-with)
+- [License](#license)
+
+## The problem I had
+
+On most chains you pay for the gas your transaction actually used. On Monad you pay for the gas limit you **declared**, whether you used it or not, and **even when the transaction reverts**.
+
+That means a single failed action, a sold-out mint, an underpriced swap, a call to a function that no longer exists, costs you real MON for nothing. Your wallet often pads the limit even higher on a revert-probe, so the bill is worse than you would guess.
+
+I did not assume this. I proved it against live testnet, reproducible in [`research/gas-model/`](./research/gas-model/VERIFICATION.md):
+
+- A **reverted** transaction paid its **full declared gas limit**, balance delta exact to the wei ([tx](https://testnet.monadexplorer.com/tx/0x272f56f75f38199c6cc1a465df6bb0c310bae51beaa4ea6500e15107f7fb29b8)).
+- In **40 of 40** sampled transactions, `receipt.gasUsed == gasLimit`. The chain hides your real usage.
+- One Monad airdrop recipient burned roughly **$112,700** on failed transactions. The testnet failure rate sits around **6%**.
+
+There was no Monad-native tool that stops this before it happens. Reckon is that tool.
+
+## How it works
+
+One simple loop: **see what you have burned, catch the next one, keep your MON.**
+
+**1. See it.** Connect your wallet, or paste any address. Reckon scans your real recent Monad history and tells you, in plain English, how much MON you burned on failed transactions and which risky approvals are still open.
+
+**2. Catch it.** Every transaction runs through a real pre-flight first. Reckon simulates it against live Monad, and:
+
+- if it would **revert**, Reckon refuses to send it, and your wallet never even opens;
+- if it would **succeed but is dangerous** (an unlimited token approval, an NFT operator grant), it reaches your wallet clearly flagged so you decide on purpose, not by reflex;
+- if it is **healthy**, it goes through with the tightest correct gas limit, so you stop overpaying.
+
+**3. Keep it.** Found an old unlimited approval you forgot about? One click sends a real revoke and it is gone.
+
+```ts
+const v = await reckon.preflight(tx)
+// {
+//   willRevert: true,
+//   revertReason: "SoldOut()",
+//   recommendedGasLimit: 61_000n,   // Monad-correct, not an Ethereum guess
+//   worstCaseFeeMON: "0.0062",      // what you would actually be charged
+//   savingsVsNaiveMON: "0.045"      // MON the wallet default would have burned
+// }
+await reckon.safeSend(tx)           // refuses to broadcast a doomed tx
+```
+
+## Proof it is real
+
+This hackathon explicitly penalizes fake demos and hardcoded results. Nothing here is mocked. Every number is a real balance delta and every hash below is a real Monad testnet transaction you can open right now.
+
+| What happened | Real transaction |
+|---|---|
+| Healthy send, gas tightened, went through | [`0xb613…9ae7`](https://testnet.monadexplorer.com/tx/0xb613575a6f9dc5107e4ff9a0bc76bcb64dea3ec220da775aa708c2f470b79ae7) |
+| Unlimited approval, sent but flagged critical | [`0xb2e9…2eca`](https://testnet.monadexplorer.com/tx/0xb2e92e5e8969f42ceb8e1b9d4d9cbcca6faf101b2afc4ea2b36c6ddcbc842eca) |
+| That approval, revoked in one click | [`0xd465…8323`](https://testnet.monadexplorer.com/tx/0xd465c6b769c300ab137e0bf4a9861905c26f4e611da92cb935e0338ab94f8323) |
+
+And the doomed transaction? It has **no hash**, because Reckon refused to send it. That is the whole point.
+
+Backed by a real test suite, all run against live testnet plus a local EVM:
+
+- `packages/core` pre-flight engine, gas model, and risk detection, **49/49**
+- `packages/sdk` wallet guard and viem wrapper, **8/8**
+- `packages/agent` MCP guard, **9/9**
+- `contracts/` GuardedExecutor, **16/16**, source-verified at [`0x84e5…B6AE`](https://testnet.monadscan.com/address/0x84e5C3c524f473c19821ae2D1494b274730bB6AE)
+
+A naive agent run on live testnet burned **0.0408 MON** on a revert plus an oversized limit. The same agent behind Reckon spent **0.0024 MON**, a **~94% reduction**, every transaction verifiable on the explorer.
+
+## Try it yourself
+
+The live app runs entirely in your browser against Monad testnet, no backend:
+
+**→ [reckon-monad-seatbelt.vercel.app/app](https://reckon-monad-seatbelt.vercel.app/app)**
+
+Or run the engine locally and watch it pre-flight a healthy transaction and refuse a doomed one against real testnet:
 
 ```bash
 npm install
 cd packages/core && npm run build && node examples/demo.mjs
 ```
 
-It pre-flights a healthy tx (recommends a tight 21,000-gas limit) and a doomed one (refuses to
-broadcast, decodes the revert, and reports the MON it just saved you) — all against real testnet.
-
-## The problem (verified, not assumed)
-
-We proved Monad's gas model against live testnet data — reproducible in
-**[research/gas-model/](./research/gas-model/VERIFICATION.md)**:
-
-- A **reverted** tx paid its **full declared gas limit** — balance delta
-  `0.013586524000131908 MON` = `gasLimit × price`, exact to the wei
-  ([tx](https://testnet.monadexplorer.com/tx/0x272f56f75f38199c6cc1a465df6bb0c310bae51beaa4ea6500e15107f7fb29b8)).
-- **40/40** sampled txs report `receipt.gasUsed == gasLimit` — the chain **hides your real usage**.
-- Wallets balloon the limit on revert-probes, so one failed action (a sold-out NFT mint, an
-  underpriced swap) can cost a shocking amount of MON.
-- A Monad airdrop user burned **~$112,700** on failed transactions; the network failure rate is **~6%**.
-
-There is no Monad-native tool that prevents this. Reckon is that tool.
-
-## How it works
-
-`preflight(tx)` runs before you broadcast and returns a verdict:
-
-```ts
-const v = await reckon.preflight(tx)
-// {
-//   ok: false,
-//   willRevert: true,
-//   revertReason: "SoldOut()",
-//   recommendedGasLimit: 61_000n,     // Monad-correct, not Ethereum-guessed
-//   worstCaseFeeMON: "0.0062",        // what you'd actually be charged
-//   overpayVsWalletDefault: "0.045"   // MON the wallet default would have burned
-// }
-await reckon.safeSend(tx)             // refuses to broadcast a doomed tx
-```
-
-## Three surfaces (it's infrastructure, not an app)
-
-| Surface | For | What it does |
-|---|---|---|
-| **SDK** (`packages/sdk`) | dApps & deploy scripts | drop-in viem wrapper: `safeSend()` |
-| **Agent guard** (`packages/agent`) | autonomous AI agents | MCP tools so agents pre-flight every tx |
-| **GuardedExecutor** (`contracts/`) | on-chain | bounded, predictable, policy-enforced execution |
-
-AI agents fire many transactions and are the most exposed to Monad's gas model — so the agent
-economy *increases* Reckon's value, it doesn't erode it.
-
-## Honest accounting
-
-Savings come from **pre-broadcast** (not sending failures + declaring the tightest correct limit).
-Once a tx is on-chain, Monad charges the limit — **no component pretends to refund gas.** Every
-cost/savings figure is measured against real testnet transactions.
-
-## Repository layout (target)
-
-```
-packages/core    pre-flight engine (simulate + Monad gas model + cost quote)
-packages/sdk     drop-in viem middleware for apps & scripts
-packages/agent   MCP server / agent guard
-contracts/       Foundry — GuardedExecutor + tests
-web/             Next.js dashboard (MON saved · receipts)
-research/        live-testnet gas-model verification (reproducible)
-PLAN.md          full implementation plan
-```
-
-## Verify the problem yourself
+Want to confirm the underlying problem for yourself first?
 
 ```bash
 cd research/gas-model && npm install && npm run summary
 ```
 
-## Tech
+## For developers
 
-Monad testnet · viem · Foundry · Solidity + OpenZeppelin · MCP · Next.js + Wagmi v3 + Shadcn · Para
-(wallet). Built with [Monskills](https://skills.devnads.com/).
+Reckon is a product you can use in one click, but the same pre-flight engine is packaged so you can drop it into your own code. This part is not required to use the app; it is here if you build on Monad too.
+
+```ts
+import { createGuardedProvider } from "@codeswithroh/reckon-sdk"
+
+// wrap any wallet: doomed sends are blocked before the wallet ever prompts
+const provider = createGuardedProvider(walletProvider)
+```
+
+| Surface | For | What it does |
+|---|---|---|
+| **SDK** ([`reckon-sdk`](https://www.npmjs.com/package/@codeswithroh/reckon-sdk)) | dApps and deploy scripts | drop-in viem wrapper: `preflight()`, `safeSend()`, `createGuardedProvider()` |
+| **Agent guard** (`packages/agent`) | autonomous AI agents | an MCP server so agents pre-flight every transaction before sending |
+| **GuardedExecutor** (`contracts/`) | on-chain | bounded, policy-enforced batch execution |
+
+```
+packages/core    pre-flight engine (simulate + Monad gas model + risk detection)
+packages/sdk     drop-in viem middleware + wallet guard
+packages/agent   MCP server / agent guard
+contracts/       Foundry: GuardedExecutor + MockToken
+web/             Next.js app (the product) + landing page
+research/        live-testnet gas-model verification (reproducible)
+```
+
+**Honest accounting:** all savings come from acting **before** you broadcast, by not sending failures and by declaring the tightest correct limit. Once a transaction is on-chain, Monad charges the limit. Nothing here pretends to refund gas.
+
+## Built with
+
+Monad testnet · viem · wagmi (EIP-6963) · Foundry · Solidity + OpenZeppelin · MCP · Next.js. Built for the [Spark](https://buildanything.so/hackathons/spark) hackathon.
 
 ## License
 

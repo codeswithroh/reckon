@@ -94,7 +94,7 @@ export const PRESETS: Preset[] = [
     id: "unlimited-approve",
     label: "Unlimited approval (risky)",
     blurb:
-      "approve(spender, MAX_UINT256) on a real deployed ERC-20: succeeds on-chain, no revert, but grants an unlimited allowance. The exact pattern behind a real ~$175K agent-drain incident in May 2026 — Reckon flags it as critical even though it wouldn't fail.",
+      "approve(spender, MAX_UINT256) on a real deployed ERC-20: succeeds on-chain, no revert, but grants an unlimited allowance. The exact pattern behind a real ~$175K agent-drain incident in May 2026. Reckon flags it as critical even though it wouldn't fail.",
     expect: "OK",
     tx: { from: DEMO_FROM, to: MOCK_TOKEN, data: unlimitedApprove },
   },

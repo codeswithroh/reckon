@@ -103,7 +103,7 @@ function RevokeButton({ flag, tx, from }: { flag: RiskFlag; tx: RiskyTx; from: A
   if (state.kind === "done") {
     return (
       <a className="revoke-btn done" href={`${EXPLORER}/tx/${state.hash}`}>
-        ✓ Revoked — view tx ↗
+        ✓ Revoked, view tx ↗
       </a>
     );
   }
@@ -279,7 +279,7 @@ export function WalletReport({ wallet }: { wallet: WalletState }) {
 
       {result.timedOut && (
         <p className="blurb" style={{ marginTop: 10 }}>
-          Scan hit its time limit and stopped early — results are from a partial window, not full
+          Scan hit its time limit and stopped early, results are from a partial window, not full
           history.
         </p>
       )}

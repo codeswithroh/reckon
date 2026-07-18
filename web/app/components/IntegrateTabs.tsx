@@ -149,7 +149,7 @@ export function IntegrateTabs() {
             </div>
             <div>&nbsp;</div>
             <div>
-              <span className="c">{"// zero RPC calls — safe to run in a hot path, an agent loop, or a relayer"}</span>
+              <span className="c">{"// zero RPC calls, safe to run in a hot path, an agent loop, or a relayer"}</span>
             </div>
             <div>
               <span className="k">const</span> flags = <span className="f">detectRiskFlags</span>({"{ to, data, value }"});
@@ -158,7 +158,7 @@ export function IntegrateTabs() {
               <span className="k">if</span> (flags.some(f =&gt; f.severity === <span className="s">&quot;critical&quot;</span>)) {"{"}
             </div>
             <div>
-              &nbsp;&nbsp;<span className="c">{"// stop here — don't forward, don't co-sign, don't relay"}</span>
+              &nbsp;&nbsp;<span className="c">{"// stop here: don't forward, don't co-sign, don't relay"}</span>
             </div>
             <div>{"}"}</div>
           </div>

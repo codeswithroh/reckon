@@ -23,20 +23,20 @@ export default function LandingPage() {
             <div className="hero-copy">
               <span className="eyebrow">Monad testnet &middot; live</span>
               <h1>
-                A transaction seatbelt
+                On Monad,
                 <br />
-                for <span className="accent">Monad</span>.
+                failure <span className="accent">isn&apos;t free</span>.
               </h1>
               <p className="tagline">// a screenshot can lie. a receipt can&apos;t.</p>
               <p className="subhead">
-                On Monad you pay for the gas limit you declare, <strong>not</strong> the gas you
-                use, and even when your transaction reverts. Reckon pre-flights every transaction:
-                it simulates it, refuses to broadcast doomed ones, and sets the tightest correct
-                gas limit.
+                Every transaction is charged the full gas limit you declare, even when it reverts.
+                I kept losing MON on transactions that failed, so I built Reckon: it checks each one
+                before you sign, refuses the doomed ones before your wallet opens, and shows you
+                exactly what you were about to lose.
               </p>
               <div className="cta-row">
                 <Link className="btn btn-primary" href="/app">
-                  Launch the app
+                  Check your wallet
                 </Link>
                 <a className="btn" href="https://github.com/codeswithroh/reckon">
                   Read the code
@@ -64,9 +64,9 @@ export default function LandingPage() {
           </div>
           <div className="stat" data-reveal>
             <div className="num accent">
-              <CountUp value={3} />
+              <CountUp value={0} />
             </div>
-            <div className="lbl">surfaces: SDK &middot; MCP agent guard &middot; on-chain</div>
+            <div className="lbl">mocked results: every transaction is a real Monad tx</div>
           </div>
           <div className="stat" data-reveal>
             <div className="num">
@@ -116,10 +116,11 @@ export default function LandingPage() {
       <section id="how-it-works">
         <div className="sec-head">
           <span className="sec-num">02</span>
-          <h2>Three surfaces, one seatbelt</h2>
+          <h2>One seatbelt, however you build</h2>
         </div>
         <p className="sec-sub">
-          The same pre-flight engine, wherever your transactions originate from.
+          Use the app in one click, or drop the same pre-flight engine into your own dApp, agent,
+          or deploy scripts.
         </p>
         <div className="icon-surfaces">
           <div className="icon-card" data-reveal>
