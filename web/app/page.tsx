@@ -21,7 +21,10 @@ export default function LandingPage() {
         <HeroTimeline>
           <div className="hero-grid">
             <div className="hero-copy">
-              <span className="eyebrow">Monad testnet &middot; live</span>
+              <div className="hero-top-row">
+                <span className="eyebrow">Monad testnet &middot; live</span>
+                <span className="annotation-badge">// zero mocked transactions below</span>
+              </div>
               <h1>
                 On Monad,
                 <br />
@@ -43,8 +46,79 @@ export default function LandingPage() {
                 </a>
               </div>
             </div>
-            <div className="hero-visual" aria-hidden="false">
-              <HeroDiagram />
+          </div>
+
+          <div className="hero-collage">
+            <div className="collage-card" data-reveal>
+              <span className="collage-card-tag">live guard</span>
+              <p className="collage-card-text">
+                &ldquo;This transaction would revert. Reckon refuses to send it.&rdquo;
+              </p>
+              <div className="badge block" style={{ marginTop: 10 }}>
+                ● BLOCKED, never reached your wallet
+              </div>
+            </div>
+            <div className="collage-card" data-reveal>
+              <span className="collage-card-tag">packages/core</span>
+              <div className="code" style={{ padding: "12px 14px", fontSize: 12, marginTop: 8 }}>
+                <div>
+                  <span className="k">const</span> v = <span className="k">await</span> reckon.
+                  <span className="f">preflight</span>(tx)
+                </div>
+                <div>
+                  <span className="c">// willRevert: false</span>
+                </div>
+                <div>
+                  <span className="c">// recommendedGasLimit: 23,838n</span>
+                </div>
+              </div>
+            </div>
+            <div className="collage-card" data-reveal>
+              <span className="collage-card-tag">real balances, same agent</span>
+              <div className="collage-stat-row">
+                <div>
+                  <span className="collage-stat-num block">0.0408</span>
+                  <span className="collage-stat-lbl">naive MON burned</span>
+                </div>
+                <div>
+                  <span className="collage-stat-num ok">0.0024</span>
+                  <span className="collage-stat-lbl">reckon-guarded</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="hero-tags" data-reveal>
+            <span className="tag-chip">on-chain</span>
+            <span className="tag-chip">no mocks</span>
+            <span className="tag-chip">live testnet</span>
+            <span className="tag-chip">open source</span>
+          </div>
+
+          <div className="proof-strip" data-reveal>
+            <div className="proof-strip-head">Verified on-chain, not a promise</div>
+            <div className="proof-chips">
+              <a
+                className="proof-chip"
+                href="https://testnet.monadexplorer.com/tx/0xb613575a6f9dc5107e4ff9a0bc76bcb64dea3ec220da775aa708c2f470b79ae7"
+              >
+                <span className="dot" />
+                0xb613&hellip;9ae7 &#8599;
+              </a>
+              <a
+                className="proof-chip"
+                href="https://testnet.monadexplorer.com/tx/0xb2e92e5e8969f42ceb8e1b9d4d9cbcca6faf101b2afc4ea2b36c6ddcbc842eca"
+              >
+                <span className="dot" />
+                0xb2e9&hellip;2eca &#8599;
+              </a>
+              <a
+                className="proof-chip"
+                href="https://testnet.monadexplorer.com/tx/0xd465c6b769c300ab137e0bf4a9861905c26f4e611da92cb935e0338ab94f8323"
+              >
+                <span className="dot" />
+                0xd465&hellip;8323 &#8599;
+              </a>
             </div>
           </div>
         </HeroTimeline>
@@ -159,6 +233,25 @@ export default function LandingPage() {
               Bounded, predictable execution with per-caller policy, enforced on-chain outside any
               agent&apos;s control. EIP-7702 friendly.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA BAND */}
+      <section className="cta-band" data-reveal>
+        <div className="cta-band-inner">
+          <div>
+            <h2>Every send gets checked, live, before you sign.</h2>
+            <p className="sec-sub" style={{ marginBottom: 20 }}>
+              No calldata to paste, no setup. Connect a wallet and watch a doomed transaction get
+              refused before it ever reaches you.
+            </p>
+            <Link className="btn btn-primary" href="/app">
+              Try it on your wallet &rarr;
+            </Link>
+          </div>
+          <div className="cta-band-visual">
+            <HeroDiagram />
           </div>
         </div>
       </section>

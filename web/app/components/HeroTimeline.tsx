@@ -32,7 +32,6 @@ export function HeroTimeline({ children }: { children: ReactNode }) {
             root.querySelector(".tagline"),
             root.querySelector(".subhead"),
             root.querySelector(".cta-row"),
-            root.querySelector(".hero-visual"),
           ].filter(Boolean) as Element[];
 
           if (reduce) {

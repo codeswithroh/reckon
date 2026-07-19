@@ -154,3 +154,45 @@ descendants. This is the same class of bug as the earlier `position: sticky` + G
 interaction, just the fixed-position variant. Fixed by portaling the modal to `document.body` via
 `createPortal` (the standard fix, and how RainbowKit's own modal avoids this exact problem) —
 confirmed centered and fully on top in the live browser both locally and on the Vercel deploy.
+
+## Landing hero redesign (2026-07-19)
+
+User supplied two reference images (a "Kiwi" mission page and a "plm" community-marketing site)
+and asked for the second's hero pattern specifically. The reference's actual palette (bright pink,
+cream, halftone-grunge scrapbook) was **not** adopted — flagged this to the user directly before
+building: Reckon is a security dev-tool being judged by Monad DevRel on technical credibility, not
+a consumer community brand, and the reference's photo collage of real community members + avatar
+row would have meant fabricating social proof for a solo hackathon project with no real team, which
+conflicts with the project's whole "nothing is mocked" ethos established since Phase 0. What
+carried over is the **structural pattern**, rendered in the locked dark/purple palette:
+
+- `.hero-top-row` — the existing eyebrow pill plus a new dashed-border `.annotation-badge`
+  ("// zero mocked transactions below"), the reference's small rotated callout-next-to-headline
+  move.
+- `.hero-collage` — three `.collage-card`s in a scrapbook scatter (`nth-child` rotation ±1-2deg,
+  colored border per card: block-red / accent-purple / ok-green), replacing the reference's photo
+  collage. Filled with **real product content**, not stock photos: a live-guard verdict snippet, an
+  actual `reckon.preflight()` code sample, and the real naive-vs-guarded balance numbers already
+  used elsewhere in the app (0.0408 → 0.0024 MON). Honest equivalent of "show real people," shows
+  the real product instead.
+- `.hero-tags` — small mono pill chips (on-chain / no mocks / live testnet / open source), the
+  reference's feature-tag row.
+- `.proof-strip` — replaces the reference's "meet our members" avatar row with three real,
+  clickable Monad testnet tx-hash chips (the same three verified hashes documented in the root
+  README's proof table). The honest version of social proof for a project with transactions but no
+  team photos.
+- `.cta-band` — a new full-bleed section (accent-purple gradient wash, border-top/bottom) between
+  "How it works" and "Proof", the reference's bold color-block CTA. Repurposes the existing
+  `HeroDiagram.tsx` (previously the hero's single visual, now freed up by the collage) as its
+  visual half rather than leaving it unused.
+
+**Real bug caught and fixed live**: `.hero-collage` initially stayed stuck at `opacity: 0`
+indefinitely, confirmed via `getComputedStyle` (found the element, 3 children present, correct
+height, just never animated past its `gsap.set` initial state) — `HeroTimeline`'s own sequenced
+`tl.to()` chain stalled on it, while sibling steps completed normally. Root cause not fully
+isolated (plausibly interaction between `HeroTimeline`'s manual per-step tween and the collage
+children's own independent `[data-reveal]` `RevealController` handling racing on the same parent),
+but since the children already had `data-reveal` and revealed correctly on their own, the fix was
+to simply stop double-controlling the parent: removed `.hero-collage` from `HeroTimeline`'s step
+list entirely rather than debugging the interaction further. Verified via `getComputedStyle` before
+and after, and visually in the browser.
