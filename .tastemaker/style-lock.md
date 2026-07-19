@@ -196,3 +196,37 @@ but since the children already had `data-reveal` and revealed correctly on their
 to simply stop double-controlling the parent: removed `.hero-collage` from `HeroTimeline`'s step
 list entirely rather than debugging the interaction further. Verified via `getComputedStyle` before
 and after, and visually in the browser.
+
+## Atmospheric background pass (2026-07-19)
+
+User feedback: landing page "still feels too much AI," "not much assets," "background is
+lacking," "text is too much." Two real decisions worth recording:
+
+1. **Tried real photography for the background, rejected it.** Fetched a circuit-board macro via
+   Openverse (`fetch_photos.py "dark circuit board macro purple"`) — came back 600x400, and
+   stretched full-bleed behind the hero it read as generic "hacker stock art," worse than no photo
+   at all. Deleted it rather than ship a low-quality asset. No general-purpose image-gen tool is
+   available in this environment (no DALL-E/Midjourney-equivalent) — said so plainly rather than
+   implying one was used.
+2. **Built the atmosphere in code instead**, the same technique dark technical product sites
+   (Linear, Vercel, Stripe) actually use, which is arguably the more legitimately "designed" choice
+   for an engineered/serious product anyway, not a fallback:
+   - `.glow-mesh` / `.glow-blob` — 3 large blurred radial gradients (accent purple, ok green, warn
+     amber, all already-locked palette colors) positioned behind the hero, each drifting slowly via
+     a `@keyframes` transform loop (`prefers-reduced-motion` respected). Real depth and motion where
+     the background was previously flat `var(--bg)`.
+   - `body::after` — an inline SVG `feTurbulence` grain texture at 5% opacity, `mix-blend-mode:
+     overlay`. The classic technique for keeping a flat dark UI from reading as a bare color
+     swatch; zero external asset, scales to any viewport losslessly (the rejected photo could not).
+   - `.marquee` — an infinite-scroll strip of real verified claims (MONAD TESTNET, 49/49 CORE TESTS
+     PASSING, 0 MOCKED TRANSACTIONS, EIP-6963, …) between the hero and the problem section. Cheap
+     motion, adds texture, and everything in it is a real, already-substantiated fact from
+     elsewhere in the app, not invented "trusted by" filler.
+   - `.icon-card` / `.collage-card` — upgraded from flat `var(--surface)` fills to subtle diagonal
+     gradients (`linear-gradient(160deg/165deg, ...)`) with a hover lift on icon-cards and a glow
+     `box-shadow` on icon badges — the "looks designed" depth cues (layered shadow, gradient sheen)
+     the flat-fill version was missing.
+   - Every remaining dense paragraph on the landing page (hero subhead, problem-section intro, all
+     3 "how it works" card bodies) cut to one line, per the "text is too much" feedback — same
+     content, now carried by the collage/marquee/stat-tile visuals already on the page rather than
+     restated in prose next to them.

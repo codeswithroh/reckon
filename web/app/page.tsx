@@ -18,6 +18,11 @@ export default function LandingPage() {
 
       {/* 1. HERO */}
       <header className="hero">
+        <div className="glow-mesh" aria-hidden="true">
+          <span className="glow-blob accent" />
+          <span className="glow-blob ok" />
+          <span className="glow-blob warn" />
+        </div>
         <HeroTimeline>
           <div className="hero-grid">
             <div className="hero-copy">
@@ -32,10 +37,7 @@ export default function LandingPage() {
               </h1>
               <p className="tagline">// a screenshot can lie. a receipt can&apos;t.</p>
               <p className="subhead">
-                Every transaction is charged the full gas limit you declare, even when it reverts.
-                I kept losing MON on transactions that failed, so I built Reckon: it checks each one
-                before you sign, refuses the doomed ones before your wallet opens, and shows you
-                exactly what you were about to lose.
+                Every failed send still costs full gas. Reckon catches it before you sign.
               </p>
               <div className="cta-row">
                 <Link className="btn btn-primary" href="/app">
@@ -151,6 +153,24 @@ export default function LandingPage() {
         </div>
       </header>
 
+      {/* MARQUEE */}
+      <div className="marquee" aria-hidden="true">
+        <div className="marquee-track">
+          {[0, 1].map((rep) => (
+            <div key={rep} style={{ display: "flex" }}>
+              <span className="marquee-item">MONAD TESTNET <span className="sep">&middot;</span></span>
+              <span className="marquee-item">49/49 CORE TESTS PASSING <span className="sep">&middot;</span></span>
+              <span className="marquee-item">0 MOCKED TRANSACTIONS <span className="sep">&middot;</span></span>
+              <span className="marquee-item">VIEM + WAGMI <span className="sep">&middot;</span></span>
+              <span className="marquee-item">FOUNDRY VERIFIED <span className="sep">&middot;</span></span>
+              <span className="marquee-item">MCP AGENT GUARD <span className="sep">&middot;</span></span>
+              <span className="marquee-item">EIP-6963 <span className="sep">&middot;</span></span>
+              <span className="marquee-item">OPEN SOURCE <span className="sep">&middot;</span></span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* 2. PROBLEM */}
       <section id="problem">
         <div className="sec-head">
@@ -160,10 +180,8 @@ export default function LandingPage() {
         <div className="problem-grid">
           <div>
             <p className="sec-sub" style={{ marginBottom: 20 }}>
-              Ethereum-model chains charge you for the gas your transaction actually consumed. Monad
-              charges you for the gas limit you <em>declared</em>, whether you used it or not, and
-              even when the transaction reverts. Set a loose limit (or let your wallet pad one for
-              you) and you overpay on every single send.
+              Monad charges the gas limit you <em>declare</em>, not what you used, even on a
+              revert.
             </p>
             <div className="incident-stats" data-reveal>
               <div className="incident-stat">
@@ -192,10 +210,7 @@ export default function LandingPage() {
           <span className="sec-num">02</span>
           <h2>One seatbelt, however you build</h2>
         </div>
-        <p className="sec-sub">
-          Use the app in one click, or drop the same pre-flight engine into your own dApp, agent,
-          or deploy scripts.
-        </p>
+        <p className="sec-sub">One click in the app, or drop the engine into your own code.</p>
         <div className="icon-surfaces">
           <div className="icon-card" data-reveal>
             <div className="icon-badge">
@@ -204,10 +219,8 @@ export default function LandingPage() {
             <span className="tag">packages/sdk</span>
             <h3>Drop-in SDK</h3>
             <p>
-              A viem wrapper: <span className="mono">preflight()</span>,{" "}
-              <span className="mono">safeSend()</span>, and batch routing through the on-chain
-              guard. Optionally learns a per-contract gas buffer from real chain history instead
-              of a flat percentage. Add the seatbelt to any dApp or deploy script.
+              <span className="mono">preflight()</span> + <span className="mono">safeSend()</span>,
+              a viem wrapper for any dApp or script.
             </p>
           </div>
           <div className="icon-card" data-reveal>
@@ -216,12 +229,7 @@ export default function LandingPage() {
             </div>
             <span className="tag">packages/agent</span>
             <h3>MCP agent guard</h3>
-            <p>
-              An MCP server exposing <span className="mono">reckon_preflight</span> so any AI
-              agent checks every transaction before sending. It blocks reverts and flags
-              permission-escalating calls (unlimited approvals, NFT operator grants) even when
-              they&apos;d succeed, the pattern behind a real ~$175K agent-drain incident.
-            </p>
+            <p>Every AI agent send checked first. Blocks the pattern behind a real $175K drain.</p>
           </div>
           <div className="icon-card" data-reveal>
             <div className="icon-badge">
@@ -229,10 +237,7 @@ export default function LandingPage() {
             </div>
             <span className="tag">contracts/</span>
             <h3>On-chain GuardedExecutor</h3>
-            <p>
-              Bounded, predictable execution with per-caller policy, enforced on-chain outside any
-              agent&apos;s control. EIP-7702 friendly.
-            </p>
+            <p>Policy enforced on-chain, outside any agent&apos;s control.</p>
           </div>
         </div>
       </section>
