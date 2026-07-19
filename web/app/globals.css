@@ -79,7 +79,10 @@ body::after {
 
 /* glow mesh: soft blurred color blobs drifting slowly behind the hero */
 .glow-mesh {
-  position: absolute;
+  /* fixed, not absolute: .hero sits inside .wrap's 1080px column, so an absolutely-positioned
+     glow-mesh was trapped in that column too, leaving flat black on both sides on wide screens.
+     Fixed positioning breaks it out to the real viewport, same technique as body::before/::after. */
+  position: fixed;
   inset: 0;
   z-index: 0;
   overflow: hidden;
